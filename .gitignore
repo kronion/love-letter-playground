@@ -1,0 +1,8 @@
+.mypy_cache
+.nvmrc
+
+# ripgrep can ignore files that are still checked in
+.rgignore
+
+__pycache__
+node_modules
