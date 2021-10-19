@@ -1,12 +1,11 @@
 import webbrowser
 
 from flask import Flask
+from gym_love_letter.envs.base import LoveLetterMultiAgentEnv
 from stable_baselines3.ppo import PPO
 
-
 from love_letter_playground.agents import HumanAgent, RandomAgent
-from gym_love_letter.envs.base import LoveLetterMultiAgentEnv
-from gym_love_letter.interface.api import make_api
+from love_letter_playground.interface.api import make_api
 
 
 app = Flask(__name__, static_url_path="/static", static_folder="dist")

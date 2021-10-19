@@ -1,3 +1,6 @@
+[tool.poe.tasks]
+play = { cmd = "flask run", env = { FLASK_APP = "love_letter_playground.interface.server" } }
+
 [tool.poetry]
 name = "love-letter-playground"
 version = "0.1.0"
@@ -10,6 +13,8 @@ Flask = "^2.0.2"
 stable-baselines3 = "^1.2.0"
 sb3-contrib = "^1.2.0"
 gym = "^0.21.0"
+gym-love-letter = {path = "../../GymEnvs/love-letter/dist/gym_love_letter-0.1.0-py3-none-any.whl"}
+poethepoet = "^0.10.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.910"
