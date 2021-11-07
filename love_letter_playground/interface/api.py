@@ -1,8 +1,13 @@
-from flask import Blueprint, jsonify
-from marshmallow import Schema, fields
+import functools
+import uuid
+from typing import Dict
 
+from flask import Blueprint, jsonify, make_response, request, session
 from gym_love_letter.engine import Card
 from gym_love_letter.envs.base import InvalidPlayError, LoveLetterMultiAgentEnv
+from marshmallow import Schema, fields
+
+from love_letter_playground.agents import HumanAgent, RandomAgent
 
 
 class CardSchema(Schema):
@@ -78,25 +83,73 @@ class GameOverSchema(ObservationSchema):
     players = fields.List(fields.Nested(PlayerFullSchema))
 
 
-def make_api(env: LoveLetterMultiAgentEnv):
+def game_required(cache):
+    def view_wrapper(view):
+        @functools.wraps(view)
+        def replacement_view(*args, **kwargs):
+            if "game" not in session:
+                return "Game not found", 404
+
+            try:
+                cache_key = session["game"]
+                env = cache[cache_key]
+            except KeyError:
+                return "Game not found", 404
+
+
+            return view(env, *args, **kwargs)
+
+        return replacement_view
+
+    return view_wrapper
+
+
+def make_api(cache: Dict):
     api = Blueprint("api", __name__)
 
+    @api.post("/create")
+    def create_game():
+        # TODO pick number of players
+        # TODO pick agents
+        def make_agents(env):
+            human = HumanAgent()
+            # load_path = "zoo/ppo_reward_bugfix4/latest/best_model"
+            # load_path = "zoo/ppo_logging/2020-12-27T15:51:49/final_model"
+            # load_path = "zoo/ppo_kl/2020-12-27T16:28:42/final_model"
+            # model = PPO.load(load_path, env)
+            random1 = RandomAgent(env)
+            # random2 = RandomAgent(env)
+
+            return [human, random1]  # model]  # random1, random2]
+
+        env = LoveLetterMultiAgentEnv(num_players=2, make_agents_cb=make_agents)
+
+        #TODO where to put it? Somewhere global, like a cache.
+        uid = str(uuid.uuid4())
+        cache[uid] = env
+        session["game"] = uid
+        return "Created", 201
+
     @api.route("/reset")
-    def reset():
+    @game_required(cache)
+    def reset(env):
         env.reset()
         return ObservationSchema().dump(env.observe())
 
     @api.route("/current_state")
-    def current_state():
+    @game_required(cache)
+    def current_state(env):
         schema = ObservationSchema() if env.players[0].active else GameOverSchema()
         return schema.dump(env.observe())
 
     @api.route("/valid_actions")
-    def valid_actions():
+    @game_required(cache)
+    def valid_actions(env):
         return jsonify(ActionSchema(many=True).dump(env.valid_actions))
 
     @api.route("/step")
-    def step():
+    @game_required(cache)
+    def step(env):
         # Find the next active player to take a step for.
         # Break if no players are active.
         starting_player = env.current_player
@@ -143,7 +196,8 @@ def make_api(env: LoveLetterMultiAgentEnv):
         return schema.dump(env.observe())
 
     @api.route("/step/<int:action_id>")
-    def step_action(action_id):
+    @game_required(cache)
+    def step_action(env, action_id):
         try:
             env.protected_step(action_id, full_cycle=False)
         except InvalidPlayError as e:

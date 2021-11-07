@@ -77,8 +77,6 @@ python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
 click = ">=7.1.2,<8.0.0"
-Flask = ">=2.0.2,<3.0.0"
-marshmallow = ">=3.10.0,<4.0.0"
 stable-baselines3 = ">=1,<2"
 
 [package.source]
@@ -351,7 +349,7 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b7833f21417ac755b0f2cc0b03e6355348eb98c32eec543e02fafbe9d3188d6c"
+content-hash = "4fa3656893d5470ca8a7bd9206d1a69836fbb5dedf0b7bb61be231010ae47e69"
 
 [metadata.files]
 click = [
@@ -374,7 +372,7 @@ gym = [
     {file = "gym-0.21.0.tar.gz", hash = "sha256:0fd1ce165c754b4017e37a617b097c032b8c3feb8a0394ccc8777c7c50dddff3"},
 ]
 gym-love-letter = [
-    {file = "gym_love_letter-0.1.0-py3-none-any.whl", hash = "sha256:19b1b79cea0a2faea121fce4aef56761ad5fa59dac651df46c449dff12d2a238"},
+    {file = "gym_love_letter-0.1.0-py3-none-any.whl", hash = "sha256:ff42d72da9f876f8d957dd95cd9c90147ce091ee0ae5752cae191c7fd33e28c5"},
 ]
 itsdangerous = [
     {file = "itsdangerous-2.0.1-py3-none-any.whl", hash = "sha256:5174094b9637652bdb841a3029700391451bd092ba3db90600dea710ba28e97c"},

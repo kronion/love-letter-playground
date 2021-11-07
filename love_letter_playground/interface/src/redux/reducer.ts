@@ -1,6 +1,7 @@
 import { produce } from 'immer'
 import { current } from 'immer'
 import { applyMiddleware, createStore, Reducer } from 'redux'
+import { composeWithDevTools } from 'redux-devtools-extension';
 import thunk from 'redux-thunk'
 
 import { Card, GameState, Player } from '../types'
@@ -9,6 +10,7 @@ import { ActionTypes, AppAction } from './actions'
 
 export interface State extends GameState {
   chosenCard: Card | null
+  connecting: boolean
   guess: Card | null
   players: Player[]
   running: boolean
@@ -19,6 +21,7 @@ export interface State extends GameState {
 
 const initialState: State = {
   chosenCard: null,
+  connecting: true,
   guess: null,
   running: false,
   target: null,
@@ -50,6 +53,19 @@ const reducer: Reducer<State, AppAction> = produce((state: State, action: AppAct
     case ActionTypes.CHOOSE_TARGET:
       state.target = action.target
       break
+
+    case ActionTypes.CONNECT:
+      state.connecting = false
+      break
+
+    case ActionTypes.RECONNECT:
+      state = {
+        ...state,
+        ...action.data,
+        connecting: false,
+        running: true
+      }
+      return state
 
     case ActionTypes.REGISTER_TIMEOUT:
       state.timeouts.push(action.timeout)
@@ -87,4 +103,6 @@ const reducer: Reducer<State, AppAction> = produce((state: State, action: AppAct
   }
 }, initialState)
 
-export default createStore(reducer, applyMiddleware(thunk))
+export default createStore(reducer, composeWithDevTools(
+  applyMiddleware(thunk)
+))

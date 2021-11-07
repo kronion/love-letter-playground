@@ -7,3 +7,6 @@ This repo has three components:
 
 Agents are currently trained using the Stable Baselines 3 framework, but support for other
 frameworks may be added in the future.
+
+## To Run
+`poe play`

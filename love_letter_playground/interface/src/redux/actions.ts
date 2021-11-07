@@ -14,6 +14,8 @@ export enum ActionTypes {
   CHOOSE_CARD = 'CHOOSE_CARD',
   CHOOSE_GUESS = 'CHOOSE_GUESS',
   CHOOSE_TARGET = 'CHOOSE_TARGET',
+  CONNECT = 'CONNECT',
+  RECONNECT = 'RECONNECT',
   REGISTER_TIMEOUT = 'REGISTER_TIMEOUT',
   RESET = 'RESET',
   UPDATE = 'UPDATE',
@@ -33,6 +35,15 @@ export interface ChooseGuessAction extends Action {
 export interface ChooseTargetAction extends Action {
   type: typeof ActionTypes.CHOOSE_TARGET
   target: Player | null
+}
+
+interface ConnectAction extends Action {
+  type: typeof ActionTypes.CONNECT
+}
+
+interface ReconnectAction extends Action {
+  type: typeof ActionTypes.RECONNECT
+  data: GameState
 }
 
 interface RegisterTimeoutAction extends Action {
@@ -76,6 +87,62 @@ export const chooseTarget = (target: Player | null): ChooseTargetAction => {
   }
 }
 
+const _connect_new = (): ConnectAction => {
+  return {
+    type: ActionTypes.CONNECT,
+  }
+}
+
+const _connect_existing = (data: GameState): ReconnectAction => {
+  return {
+    type: ActionTypes.RECONNECT,
+    data
+  }
+}
+
+const registerTimeout = (timeout: Timeout): RegisterTimeoutAction => {
+  return {
+    type: ActionTypes.REGISTER_TIMEOUT,
+    timeout
+  }
+}
+
+const _reset = (data: GameState): ResetAction => {
+  return {
+    type: ActionTypes.RESET,
+    data
+  }
+}
+
+export const connect = (): ThunkAction<void, null, unknown, ConnectAction | ReconnectAction> => {
+  return (dispatch) => {
+    fetch(Endpoint.CONNECT).then(response => {
+      if (!response.ok) {
+        dispatch(_connect_new())
+      }
+      else {
+        response.json().then(data => {
+          dispatch(_connect_existing(buildGameState(data)))
+        })
+      }
+    })
+  }
+}
+
+export const create = (): ThunkAction<void, State, unknown, RegisterTimeoutAction | ResetAction> => {
+  return (dispatch, getState) => {
+    // Clear any queued actions
+    const { timeouts } = getState()
+    timeouts.map(id => clearTimeout(id))
+    fetch(Endpoint.CREATE, {method: "post"})
+      .then(response => {
+        if (response.ok) {
+          dispatch(reset())
+        }
+      })
+  }
+}
+
 export const play = (action: GameAction): ThunkAction<
   void,
   State,
@@ -103,20 +170,6 @@ export const play = (action: GameAction): ThunkAction<
           dispatch(registerTimeout(tid))
         }
       })
-  }
-}
-
-const registerTimeout = (timeout: Timeout): RegisterTimeoutAction => {
-  return {
-    type: ActionTypes.REGISTER_TIMEOUT,
-    timeout
-  }
-}
-
-const _reset = (data: GameState): ResetAction => {
-  return {
-    type: ActionTypes.RESET,
-    data
   }
 }
 
@@ -190,6 +243,8 @@ export type AppAction = (
     ChooseCardAction
   | ChooseGuessAction
   | ChooseTargetAction
+  | ConnectAction
+  | ReconnectAction
   | RegisterTimeoutAction
   | ResetAction
   | UpdateAction
