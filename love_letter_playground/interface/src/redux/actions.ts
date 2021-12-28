@@ -1,10 +1,11 @@
+import { createAction, createAsyncThunk } from '@reduxjs/toolkit'
 import { Action } from 'redux'
 import { ThunkAction } from 'redux-thunk'
 
 import { buildGameState, Endpoint } from '../api'
 import { Card, GameAction, GameState, Player } from '../types'
 import { State } from './reducer'
-import {getHumanPlayer} from './selectors'
+import { getHumanPlayer } from './selectors'
 
 type Timeout = ReturnType<typeof setTimeout>
 
@@ -65,179 +66,95 @@ export interface WatchAction extends Action {
   type: typeof ActionTypes.WATCH
 }
 
-export const chooseCard = (card: Card | null): ChooseCardAction => {
-  return {
-    type: ActionTypes.CHOOSE_CARD,
-    card 
-  }
-}
+const chooseCard = createAction<Card | null>("choose_card");
 
-export const chooseGuess = (guessId: number | null): ChooseGuessAction => {
+const chooseGuess = createAction("choose_guess", (guessId: number | null) => {
   const guess = guessId ? new Card(guessId) : null
   return {
-    type: ActionTypes.CHOOSE_GUESS,
-    guess
+    payload: guess
   }
-}
+});
 
-export const chooseTarget = (target: Player | null): ChooseTargetAction => {
-  return {
-    type: ActionTypes.CHOOSE_TARGET,
-    target
+const chooseTarget = createAction<Player | null>("choose_target")
+
+const registerTimeout = createAction<Timeout>("register_timeout");
+
+const connect = createAction<WebSocket>("connect");
+const startConnect = createAsyncThunk("start_connect", async (_, { dispatch }) => {
+  const ws = new WebSocket(`ws://${window.location.host}/api/ws`)
+  ws.onopen = e => {
+    console.log(e);
+    // TODO PICK UP FROM HERE
+    dispatch(connect(ws));
   }
-}
+});
 
-const _connect_new = (): ConnectAction => {
-  return {
-    type: ActionTypes.CONNECT,
+const create = createAsyncThunk<void, void, { state: State }>("create", async (_, { dispatch, getState }) => {
+  const { timeouts } = getState();
+  timeouts.map(id => clearTimeout(id));
+  const response = await fetch(Endpoint.CREATE, {method: "post"});
+  if (response.ok) {
+    dispatch(startReset());
   }
-}
+});
 
-const _connect_existing = (data: GameState): ReconnectAction => {
-  return {
-    type: ActionTypes.RECONNECT,
-    data
+const play = createAsyncThunk<void, GameAction, { state: State }>("play", async (action, { dispatch, getState }) => {
+  dispatch(chooseCard(null));
+  dispatch(chooseGuess(null));
+  dispatch(chooseTarget(null));
+
+  const response = await fetch(`${Endpoint.STEP}/${action.id}`);
+  const data = buildGameState(await response.json());
+  dispatch(update(data));
+  const state = getState();
+  const human = getHumanPlayer(state);
+  if (!state.gameOver && ((human.active && state.currentPlayer !== human.position) || state.watching)) {
+    const tid = setTimeout(() => dispatch(step()), MOVE_DELAY)
+    dispatch(registerTimeout(tid))
   }
-}
+});
 
-const registerTimeout = (timeout: Timeout): RegisterTimeoutAction => {
-  return {
-    type: ActionTypes.REGISTER_TIMEOUT,
-    timeout
+const reset = createAction<GameState>("reset");
+const startReset = createAsyncThunk<void, void, { state: State }>("start_reset", async (_, { dispatch, getState }) => {
+  // Clear any queued actions
+  const { timeouts } = getState();
+  timeouts.map(id => clearTimeout(id));
+
+  const response = await fetch(Endpoint.RESET);
+  const data = await response.json();
+  dispatch(reset(buildGameState(data)));
+
+  // If the first action isn't being taken by the human player, start stepping forward
+  const state = getState();
+  if (state.currentPlayer !== getHumanPlayer(state).position) {
+    const tid = setTimeout(() => dispatch(step()), MOVE_DELAY)
+    dispatch(registerTimeout(tid))
   }
-}
+});
 
-const _reset = (data: GameState): ResetAction => {
-  return {
-    type: ActionTypes.RESET,
-    data
+const step = createAsyncThunk<void, void, { state: State }>("step", async  (_, { dispatch, getState }) => {
+  const response = await fetch(Endpoint.STEP);
+  const data = buildGameState(await response.json());
+  dispatch(update(data));
+  const state = getState();
+  const human = getHumanPlayer(state);
+  if (!state.gameOver && ((human.active && state.currentPlayer !== human.position) || state.watching)) {
+    const tid = setTimeout(() => dispatch(step()), MOVE_DELAY);
+    dispatch(registerTimeout(tid));
   }
-}
+});
 
-export const connect = (): ThunkAction<void, null, unknown, ConnectAction | ReconnectAction> => {
-  return (dispatch) => {
-    fetch(Endpoint.CONNECT).then(response => {
-      if (!response.ok) {
-        dispatch(_connect_new())
-      }
-      else {
-        response.json().then(data => {
-          dispatch(_connect_existing(buildGameState(data)))
-        })
-      }
-    })
-  }
-}
+const update = createAction<GameState>("update");
 
-export const create = (): ThunkAction<void, State, unknown, RegisterTimeoutAction | ResetAction> => {
-  return (dispatch, getState) => {
-    // Clear any queued actions
-    const { timeouts } = getState()
-    timeouts.map(id => clearTimeout(id))
-    fetch(Endpoint.CREATE, {method: "post"})
-      .then(response => {
-        if (response.ok) {
-          dispatch(reset())
-        }
-      })
-  }
-}
-
-export const play = (action: GameAction): ThunkAction<
-  void,
-  State,
-  unknown,
-  (
-      ChooseCardAction
-    | ChooseGuessAction
-    | ChooseTargetAction
-    | RegisterTimeoutAction
-    | UpdateAction
-  )
-> => {
-  return (dispatch, getState) => {
-    dispatch(chooseCard(null))
-    dispatch(chooseGuess(null))
-    dispatch(chooseTarget(null))
-    fetch(`${Endpoint.STEP}/${action.id}`)
-      .then(response => response.json())
-      .then(data => {
-        dispatch(update(buildGameState(data)))
-        const state = getState()
-        const human = getHumanPlayer(state)
-        if (!state.gameOver && ((human.active && state.currentPlayer !== human.position) || state.watching)) {
-          const tid = setTimeout(() => dispatch(step()), MOVE_DELAY)
-          dispatch(registerTimeout(tid))
-        }
-      })
-  }
-}
-
-export const reset = (): ThunkAction<void, State, unknown, RegisterTimeoutAction | ResetAction> => {
-  return (dispatch, getState) => {
-    // Clear any queued actions
-    const { timeouts } = getState()
-    timeouts.map(id => clearTimeout(id))
-
-    fetch(Endpoint.RESET)
-      .then(response => response.json())
-      .then(data => {
-        dispatch(_reset(buildGameState(data)))
-
-        // If the first action isn't being taken by the human player, start stepping forward
-        const state = getState()
-        if (state.currentPlayer !== getHumanPlayer(state).position) {
-          const tid = setTimeout(() => dispatch(step()), MOVE_DELAY)
-          dispatch(registerTimeout(tid))
-        }
-      })
-  }
-}
-
-const step = (): ThunkAction<void, State, unknown, RegisterTimeoutAction | UpdateAction> => {
-  return (dispatch, getState) => {
-    fetch(Endpoint.STEP)
-      .then(response => response.json())
-      .then(data => {
-        dispatch(update(buildGameState(data)))
-        const state = getState()
-        const human = getHumanPlayer(state)
-        if (!state.gameOver && ((human.active && state.currentPlayer !== human.position) || state.watching)) {
-          const tid = setTimeout(() => dispatch(step()), MOVE_DELAY)
-          dispatch(registerTimeout(tid))
-        }
-      })
-  }
-}
-
-export const update = (data: GameState): UpdateAction => {
-  return {
-    type: ActionTypes.UPDATE,
-    data
-  }
-}
-
-const _watch = (): WatchAction => {
-  return {
-    type: ActionTypes.WATCH
-  }
-}
-
-export const watch = (): ThunkAction<
-  void,
-  State,
-  unknown,
-  WatchAction | RegisterTimeoutAction
-> => {
-  return (dispatch, getState) => {
-    dispatch(_watch())
-    const { gameOver } = getState()
-    if (!gameOver) {
+const watch = createAction("watch");
+const startWatch = createAsyncThunk<void, void, { state: State }>("start_watch", async (_, { dispatch, getState }) => {
+  dispatch(watch());
+  const { gameOver } = getState();
+  if (!gameOver) {
       const tid = setTimeout(() => dispatch(step()), MOVE_DELAY)
       dispatch(registerTimeout(tid))
     }
-  }
-}
+});
 
 export type AppAction = (
     ChooseCardAction
@@ -250,3 +167,20 @@ export type AppAction = (
   | UpdateAction
   | WatchAction
 )
+
+export default {
+  chooseCard,
+  chooseGuess,
+  chooseTarget,
+  connect,
+  create,
+  play,
+  registerTimeout,
+  reset,
+  startConnect,
+  startReset,
+  startWatch,
+  step,
+  update,
+  watch,
+}

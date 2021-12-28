@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { connect, ConnectedProps } from 'react-redux'
 
-import { connect as serverConnect } from '../../redux/actions'
+import Actions from '../../redux/actions'
 import { State } from '../../redux/reducer'
 import Game from '../Game'
 import Menu from '../Menu'
@@ -15,7 +15,7 @@ const mapState = (state: State) => ({
 })
 
 const mapDispatch = {
-  serverConnect
+  serverConnect: Actions.connect,
 }
 
 const connector = connect(mapState, mapDispatch)

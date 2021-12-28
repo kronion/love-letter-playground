@@ -1,9 +1,9 @@
 import React from 'react'
 import { connect, ConnectedProps } from 'react-redux'
 
-import { create } from '../redux/actions'
+import Action from '../redux/actions'
 
-const connector = connect(null, { create })
+const connector = connect(null, { create: Action.create });
 
 type Props = ConnectedProps<typeof connector>
 

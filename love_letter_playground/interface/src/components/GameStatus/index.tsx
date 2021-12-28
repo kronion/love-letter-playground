@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect, ConnectedProps } from 'react-redux'
 
-import { reset, watch } from '../../redux/actions'
+import Actions from '../../redux/actions'
 import { State } from '../../redux/reducer'
 import { getHumanPlayer } from '../../redux/selectors'
 
@@ -14,8 +14,8 @@ const mapState = (state: State) => ({
 })
 
 const mapDispatch = {
-  reset,
-  watch
+  reset: Actions.reset,
+  watch: Actions.watch,
 }
 
 const connector = connect(mapState, mapDispatch)

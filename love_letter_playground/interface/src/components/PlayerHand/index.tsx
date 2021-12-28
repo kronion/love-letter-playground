@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import React from 'react'
 import { connect, ConnectedProps } from 'react-redux'
 
-import { chooseCard, chooseTarget } from '../../redux/actions'
+import Actions from '../../redux/actions'
 import { State } from '../../redux/reducer'
 import { getHumanPlayer } from '../../redux/selectors'
 import { Card as CardType } from '../../types'
@@ -20,8 +20,8 @@ const mapProps = (state: State) => ({
 })
 
 const mapDispatch = {
-  chooseCard,
-  chooseTarget
+  chooseCard: Actions.chooseCard,
+  chooseTarget: Actions.chooseTarget,
 }
 
 const connector = connect(mapProps, mapDispatch)

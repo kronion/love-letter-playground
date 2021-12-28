@@ -16,6 +16,9 @@ gym = "^0.21.0"
 poethepoet = "^0.10.0"
 marshmallow = "^3.10.0"
 gym-love-letter = {path = "../../GymEnvs/love-letter/dist/gym_love_letter-0.1.0-py3-none-any.whl"}
+fastapi = "^0.70.0"
+uvicorn = {extras = ["standard"], version = "^0.15.0"}
+starlette-csrf = "^1.4.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.910"

@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect, ConnectedProps } from 'react-redux'
 
-import { chooseCard, chooseGuess, chooseTarget, play } from '../../../redux/actions'
+import Actions from '../../../redux/actions'
 import { State } from '../../../redux/reducer'
 import { getChosenGameAction, validTargetsExist } from '../../../redux/selectors'
 import { Card } from '../../../types'
@@ -17,10 +17,10 @@ const mapProps = (state: State) => ({
 })
 
 const mapDispatch = {
-  chooseCard,
-  chooseGuess,
-  chooseTarget,
-  play
+  chooseCard: Actions.chooseCard,
+  chooseGuess: Actions.chooseGuess,
+  chooseTarget: Actions.chooseTarget,
+  play: Actions.play,
 }
 
 const connector = connect(mapProps, mapDispatch)

@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect, ConnectedProps } from 'react-redux'
 
-import { reset } from '../../redux/actions'
+import Actions from '../../redux/actions'
 import Board from '../Board'
 import GameStatus from '../GameStatus'
 import Opponents from '../Opponents'
@@ -10,7 +10,7 @@ import PlayerHand from '../PlayerHand'
 import styles from './index.module.scss'
 
 const mapDispatch = {
-  reset
+  reset: Actions.reset,
 }
 
 const connector = connect(null, mapDispatch)

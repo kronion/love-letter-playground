@@ -1,11 +1,8 @@
-import { produce } from 'immer'
-import { current } from 'immer'
-import { applyMiddleware, createStore, Reducer } from 'redux'
-import { composeWithDevTools } from 'redux-devtools-extension';
-import thunk from 'redux-thunk'
+import { configureStore, createReducer } from '@reduxjs/toolkit';
+// import { current } from 'immer'
 
 import { Card, GameState, Player } from '../types'
-import { ActionTypes, AppAction } from './actions'
+import Actions from './actions'
 
 
 export interface State extends GameState {
@@ -17,6 +14,7 @@ export interface State extends GameState {
   target: Player | null
   timeouts: ReturnType<typeof setTimeout>[]
   watching: boolean
+  ws: WebSocket | null
 }
 
 const initialState: State = {
@@ -38,71 +36,65 @@ const initialState: State = {
   validActions: [],
   watching: false,
   winners: [],
+  ws: null,
 }
 
-const reducer: Reducer<State, AppAction> = produce((state: State, action: AppAction) => {
-  switch (action.type) {
-    case ActionTypes.CHOOSE_CARD:
-      state.chosenCard = action.card
-      break
+export const store = configureStore({
+  reducer: createReducer(initialState, (builder) => {
+    builder
+      .addCase(Actions.chooseCard, (state, action) => {
+        state.chosenCard = action.payload;
+      })
+      .addCase(Actions.chooseGuess, (state, action) => {
+        state.guess = action.payload;
+      })
+      .addCase(Actions.chooseTarget, (state, action) => {
+        state.target = action.payload;
+      })
+      .addCase(Actions.connect, (state, action) => {
+        state.connecting = false;
+        state.ws = action.payload;
+      })
+      .addCase(Actions.registerTimeout, (state, action) => {
+        state.timeouts.push(action.payload)
+      })
+      .addCase(Actions.reset, (state, action) => {
+        state = {
+          ...initialState,
+          ...action.payload,
+          players: action.payload.players.map(p => {
+            const { wins, ...rest } = p
+            return {...rest, wins: state.players[p.position]?.wins ?? wins} as Player
+          }),
+          running: true
+        }
+        return state;
+      })
+      .addCase(Actions.startConnect.pending, (state) => {
+        state.connecting = true;
+      })
+      .addCase(Actions.startConnect.rejected, (state) => {
+        state.connecting = false;
+        // TODO show an error message?
+      })
+      .addCase(Actions.update, (state, action) => {
+        state = {
+          ...state,
+          ...action.payload,
+          players: action.payload.players.map(p => {
+            const { wins, ...rest } = p
+            return {...rest, wins: state.players[p.position].wins} as Player
+          })
+        }
+        for (const winner of state.winners) {
+          state.players[winner].wins += 1
+        }
+        return state
+      })
+      .addCase(Actions.watch, (state) => {
+        state.watching = true;
+      });
+  })
+});
 
-    case ActionTypes.CHOOSE_GUESS:
-      state.guess = action.guess
-      break
-
-    case ActionTypes.CHOOSE_TARGET:
-      state.target = action.target
-      break
-
-    case ActionTypes.CONNECT:
-      state.connecting = false
-      break
-
-    case ActionTypes.RECONNECT:
-      state = {
-        ...state,
-        ...action.data,
-        connecting: false,
-        running: true
-      }
-      return state
-
-    case ActionTypes.REGISTER_TIMEOUT:
-      state.timeouts.push(action.timeout)
-      break
-
-    case ActionTypes.RESET:
-      state = {
-        ...initialState,
-        ...action.data,
-        players: action.data.players.map(p => {
-          const { wins, ...rest } = p
-          return {...rest, wins: state.players[p.position]?.wins ?? wins} as Player
-        }),
-        running: true
-      }
-      return state
-
-    case ActionTypes.UPDATE:
-      state = {
-        ...state,
-        ...action.data,
-        players: action.data.players.map(p => {
-          const { wins, ...rest } = p
-          return {...rest, wins: state.players[p.position].wins} as Player
-        })
-      }
-      for (const winner of state.winners) {
-        state.players[winner].wins += 1
-      }
-      return state
-
-    case ActionTypes.WATCH:
-      state.watching = true
-      break
-  }
-}, initialState)
-
-export default createStore(reducer, composeWithDevTools(
-  applyMiddleware(thunk)
-))
+export default store;
