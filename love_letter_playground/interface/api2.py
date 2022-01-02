@@ -1,4 +1,5 @@
 import uuid
+from enum import Enum
 from typing import Dict, Optional
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, WebSocket, status
@@ -6,6 +7,12 @@ from gym_love_letter.envs.base import InvalidPlayError, LoveLetterMultiAgentEnv
 
 from love_letter_playground.agents import HumanAgent, RandomAgent
 from love_letter_playground.interface.schema import GameOverSchema, ObservationSchema
+
+
+class Action(str, Enum):
+    CREATE = "create"
+    RESET = "reset"
+
 
 
 def fetch_game_factory(cache):
@@ -21,33 +28,52 @@ def fetch_game_factory(cache):
     return fetcher
 
 
+def create_game():
+    # TODO allow agents to be selected
+
+    def make_agents(env):
+        human = HumanAgent()
+        # load_path = "zoo/ppo_reward_bugfix4/latest/best_model"
+        # load_path = "zoo/ppo_logging/2020-12-27T15:51:49/final_model"
+        # load_path = "zoo/ppo_kl/2020-12-27T16:28:42/final_model"
+        # model = PPO.load(load_path, env)
+        random1 = RandomAgent(env)
+        # random2 = RandomAgent(env)
+
+        return [human, random1]  # model]  # random1, random2]
+
+    env = LoveLetterMultiAgentEnv(num_players=2, make_agents_cb=make_agents)
+
+    return env
+
+
+async def handle_websocket_message(ws: WebSocket, cache: Dict):
+    data = await ws.receive_json()
+
+    if "action" not in data:
+        await ws.send_json({"type": "error", "reason": "action type is required"})
+        return
+
+    action = data["action"]
+    if action == Action.CREATE:
+        game = create_game()
+        uid = str(uuid.uuid4())
+        cache[uid] = game
+
+        response = {
+            "status": 201,
+            "detail": "created",
+            "data": {
+                "game": uid
+            }
+        }
+        await ws.send_json(response)
+
+
 def make_api(cache: Dict):
     api = APIRouter()
 
     fetch_game = fetch_game_factory(cache)
-
-    @api.post("/create", status_code=status.HTTP_201_CREATED)
-    def create_game(response: Response):
-        # TODO pick number of players
-        # TODO pick agents
-        def make_agents(env):
-            human = HumanAgent()
-            # load_path = "zoo/ppo_reward_bugfix4/latest/best_model"
-            # load_path = "zoo/ppo_logging/2020-12-27T15:51:49/final_model"
-            # load_path = "zoo/ppo_kl/2020-12-27T16:28:42/final_model"
-            # model = PPO.load(load_path, env)
-            random1 = RandomAgent(env)
-            # random2 = RandomAgent(env)
-
-            return [human, random1]  # model]  # random1, random2]
-
-        env = LoveLetterMultiAgentEnv(num_players=2, make_agents_cb=make_agents)
-
-        #TODO where to put it? Somewhere global, like a cache.
-        uid = str(uuid.uuid4())
-        cache[uid] = env
-        response.set_cookie(key="game", value=uid)
-        return "Created"
 
     @api.get("/reset")
     def reset(env = Depends(fetch_game)):
@@ -130,8 +156,7 @@ def make_api(cache: Dict):
         await websocket.accept()
         await websocket.send_text(f"Connected")
         while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"Message text was: {data}")
+            await handle_websocket_message(websocket, cache)
 
     async def get_cookie(
         websocket: WebSocket,

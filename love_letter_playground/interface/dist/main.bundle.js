@@ -42226,7 +42226,7 @@ var create = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncTh
               return clearTimeout(id);
             });
             dispatch(socketSend({
-              action: "CREATE"
+              action: "create"
             })); // const response = await fetch(Endpoint.CREATE, {method: "post"});
             // if (response.ok) {
             //   dispatch(startReset());

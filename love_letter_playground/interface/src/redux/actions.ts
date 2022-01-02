@@ -24,7 +24,7 @@ const registerTimeout = createAction<Timeout>("register_timeout");
 const create = createAsyncThunk<void, void, { state: State }>("create", async (_, { dispatch, getState }) => {
   const { timeouts } = getState();
   timeouts.map(id => clearTimeout(id));
-  dispatch(socketSend({action: "CREATE"}));
+  dispatch(socketSend({action: "create"}));
   // const response = await fetch(Endpoint.CREATE, {method: "post"});
   // if (response.ok) {
   //   dispatch(startReset());
