@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { connect, ConnectedProps } from 'react-redux'
 
-import Actions from '../../redux/actions'
 import { State } from '../../redux/reducer'
 import Game from '../Game'
 import Menu from '../Menu'
@@ -14,21 +13,11 @@ const mapState = (state: State) => ({
   running: state.running
 })
 
-const mapDispatch = {
-  serverConnect: Actions.connect,
-}
-
-const connector = connect(mapState, mapDispatch)
+const connector = connect(mapState)
 
 type Props = ConnectedProps<typeof connector>
 
 const App: React.FC<Props> = props => {
-  useEffect(() => {
-    if (props.connecting) {
-      props.serverConnect()
-    }
-  }, [props.connecting])
-
   console.log(props);
   return (
     <div className={styles.App}>

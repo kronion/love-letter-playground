@@ -128,7 +128,10 @@ def make_api(cache: Dict):
     @api.websocket("/ws")
     async def test(websocket: WebSocket):
         await websocket.accept()
-        await websocket.send_text(f"Message sent")
+        await websocket.send_text(f"Connected")
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"Message text was: {data}")
 
     async def get_cookie(
         websocket: WebSocket,

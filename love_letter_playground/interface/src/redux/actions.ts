@@ -1,70 +1,11 @@
 import { createAction, createAsyncThunk } from '@reduxjs/toolkit'
-import { Action } from 'redux'
-import { ThunkAction } from 'redux-thunk'
 
 import { buildGameState, Endpoint } from '../api'
 import { Card, GameAction, GameState, Player } from '../types'
 import { State } from './reducer'
 import { getHumanPlayer } from './selectors'
 
-type Timeout = ReturnType<typeof setTimeout>
-
 const MOVE_DELAY = 2500
-
-export enum ActionTypes {
-  CHOOSE_CARD = 'CHOOSE_CARD',
-  CHOOSE_GUESS = 'CHOOSE_GUESS',
-  CHOOSE_TARGET = 'CHOOSE_TARGET',
-  CONNECT = 'CONNECT',
-  RECONNECT = 'RECONNECT',
-  REGISTER_TIMEOUT = 'REGISTER_TIMEOUT',
-  RESET = 'RESET',
-  UPDATE = 'UPDATE',
-  WATCH = 'WATCH'
-}
-
-export interface ChooseCardAction extends Action {
-  type: typeof ActionTypes.CHOOSE_CARD
-  card: Card | null
-}
-
-export interface ChooseGuessAction extends Action {
-  type: typeof ActionTypes.CHOOSE_GUESS
-  guess: Card | null
-}
-
-export interface ChooseTargetAction extends Action {
-  type: typeof ActionTypes.CHOOSE_TARGET
-  target: Player | null
-}
-
-interface ConnectAction extends Action {
-  type: typeof ActionTypes.CONNECT
-}
-
-interface ReconnectAction extends Action {
-  type: typeof ActionTypes.RECONNECT
-  data: GameState
-}
-
-interface RegisterTimeoutAction extends Action {
-  type: typeof ActionTypes.REGISTER_TIMEOUT
-  timeout: Timeout
-}
-
-interface ResetAction extends Action {
-  type: typeof ActionTypes.RESET
-  data: GameState
-}
-
-export interface UpdateAction extends Action {
-  type: typeof ActionTypes.UPDATE
-  data: GameState
-}
- 
-export interface WatchAction extends Action {
-  type: typeof ActionTypes.WATCH
-}
 
 const chooseCard = createAction<Card | null>("choose_card");
 
@@ -77,25 +18,17 @@ const chooseGuess = createAction("choose_guess", (guessId: number | null) => {
 
 const chooseTarget = createAction<Player | null>("choose_target")
 
+type Timeout = ReturnType<typeof setTimeout>
 const registerTimeout = createAction<Timeout>("register_timeout");
-
-const connect = createAction<WebSocket>("connect");
-const startConnect = createAsyncThunk("start_connect", async (_, { dispatch }) => {
-  const ws = new WebSocket(`ws://${window.location.host}/api/ws`)
-  ws.onopen = e => {
-    console.log(e);
-    // TODO PICK UP FROM HERE
-    dispatch(connect(ws));
-  }
-});
 
 const create = createAsyncThunk<void, void, { state: State }>("create", async (_, { dispatch, getState }) => {
   const { timeouts } = getState();
   timeouts.map(id => clearTimeout(id));
-  const response = await fetch(Endpoint.CREATE, {method: "post"});
-  if (response.ok) {
-    dispatch(startReset());
-  }
+  dispatch(socketSend({action: "CREATE"}));
+  // const response = await fetch(Endpoint.CREATE, {method: "post"});
+  // if (response.ok) {
+  //   dispatch(startReset());
+  // }
 });
 
 const play = createAsyncThunk<void, GameAction, { state: State }>("play", async (action, { dispatch, getState }) => {
@@ -132,6 +65,12 @@ const startReset = createAsyncThunk<void, void, { state: State }>("start_reset",
   }
 });
 
+const socketConnected = createAction("socket_connected");
+const socketReceive = data => {
+  console.log(data);
+};
+const socketSend = createAction<object>("socket_send");
+
 const step = createAsyncThunk<void, void, { state: State }>("step", async  (_, { dispatch, getState }) => {
   const response = await fetch(Endpoint.STEP);
   const data = buildGameState(await response.json());
@@ -156,28 +95,17 @@ const startWatch = createAsyncThunk<void, void, { state: State }>("start_watch",
     }
 });
 
-export type AppAction = (
-    ChooseCardAction
-  | ChooseGuessAction
-  | ChooseTargetAction
-  | ConnectAction
-  | ReconnectAction
-  | RegisterTimeoutAction
-  | ResetAction
-  | UpdateAction
-  | WatchAction
-)
-
 export default {
   chooseCard,
   chooseGuess,
   chooseTarget,
-  connect,
   create,
   play,
   registerTimeout,
   reset,
-  startConnect,
+  socketConnected,
+  socketReceive,
+  socketSend,
   startReset,
   startWatch,
   step,

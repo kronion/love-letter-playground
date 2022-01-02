@@ -2440,6 +2440,26 @@ module.exports = function (key) {
 
 /***/ }),
 
+/***/ "../node_modules/core-js/internals/advance-string-index.js":
+/*!*****************************************************************!*\
+  !*** ../node_modules/core-js/internals/advance-string-index.js ***!
+  \*****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var charAt = __webpack_require__(/*! ../internals/string-multibyte */ "../node_modules/core-js/internals/string-multibyte.js").charAt;
+
+// `AdvanceStringIndex` abstract operation
+// https://tc39.es/ecma262/#sec-advancestringindex
+module.exports = function (S, index, unicode) {
+  return index + (unicode ? charAt(S, index).length : 1);
+};
+
+
+/***/ }),
+
 /***/ "../node_modules/core-js/internals/an-instance.js":
 /*!********************************************************!*\
   !*** ../node_modules/core-js/internals/an-instance.js ***!
@@ -3281,6 +3301,92 @@ module.exports = function (exec) {
   } catch (error) {
     return true;
   }
+};
+
+
+/***/ }),
+
+/***/ "../node_modules/core-js/internals/fix-regexp-well-known-symbol-logic.js":
+/*!*******************************************************************************!*\
+  !*** ../node_modules/core-js/internals/fix-regexp-well-known-symbol-logic.js ***!
+  \*******************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// TODO: Remove from `core-js@4` since it's moved to entry points
+__webpack_require__(/*! ../modules/es.regexp.exec */ "../node_modules/core-js/modules/es.regexp.exec.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../node_modules/core-js/internals/function-uncurry-this.js");
+var redefine = __webpack_require__(/*! ../internals/redefine */ "../node_modules/core-js/internals/redefine.js");
+var regexpExec = __webpack_require__(/*! ../internals/regexp-exec */ "../node_modules/core-js/internals/regexp-exec.js");
+var fails = __webpack_require__(/*! ../internals/fails */ "../node_modules/core-js/internals/fails.js");
+var wellKnownSymbol = __webpack_require__(/*! ../internals/well-known-symbol */ "../node_modules/core-js/internals/well-known-symbol.js");
+var createNonEnumerableProperty = __webpack_require__(/*! ../internals/create-non-enumerable-property */ "../node_modules/core-js/internals/create-non-enumerable-property.js");
+
+var SPECIES = wellKnownSymbol('species');
+var RegExpPrototype = RegExp.prototype;
+
+module.exports = function (KEY, exec, FORCED, SHAM) {
+  var SYMBOL = wellKnownSymbol(KEY);
+
+  var DELEGATES_TO_SYMBOL = !fails(function () {
+    // String methods call symbol-named RegEp methods
+    var O = {};
+    O[SYMBOL] = function () { return 7; };
+    return ''[KEY](O) != 7;
+  });
+
+  var DELEGATES_TO_EXEC = DELEGATES_TO_SYMBOL && !fails(function () {
+    // Symbol-named RegExp methods call .exec
+    var execCalled = false;
+    var re = /a/;
+
+    if (KEY === 'split') {
+      // We can't use real regex here since it causes deoptimization
+      // and serious performance degradation in V8
+      // https://github.com/zloirock/core-js/issues/306
+      re = {};
+      // RegExp[@@split] doesn't call the regex's exec method, but first creates
+      // a new one. We need to return the patched regex when creating the new one.
+      re.constructor = {};
+      re.constructor[SPECIES] = function () { return re; };
+      re.flags = '';
+      re[SYMBOL] = /./[SYMBOL];
+    }
+
+    re.exec = function () { execCalled = true; return null; };
+
+    re[SYMBOL]('');
+    return !execCalled;
+  });
+
+  if (
+    !DELEGATES_TO_SYMBOL ||
+    !DELEGATES_TO_EXEC ||
+    FORCED
+  ) {
+    var uncurriedNativeRegExpMethod = uncurryThis(/./[SYMBOL]);
+    var methods = exec(SYMBOL, ''[KEY], function (nativeMethod, regexp, str, arg2, forceStringMethod) {
+      var uncurriedNativeMethod = uncurryThis(nativeMethod);
+      var $exec = regexp.exec;
+      if ($exec === regexpExec || $exec === RegExpPrototype.exec) {
+        if (DELEGATES_TO_SYMBOL && !forceStringMethod) {
+          // The native String method already delegates to @@method (this
+          // polyfilled function), leasing to infinite recursion.
+          // We avoid it by directly calling the native @@method method.
+          return { done: true, value: uncurriedNativeRegExpMethod(regexp, str, arg2) };
+        }
+        return { done: true, value: uncurriedNativeMethod(str, regexp, arg2) };
+      }
+      return { done: false };
+    });
+
+    redefine(String.prototype, KEY, methods[0]);
+    redefine(RegExpPrototype, SYMBOL, methods[1]);
+  }
+
+  if (SHAM) createNonEnumerableProperty(RegExpPrototype[SYMBOL], 'sham', true);
 };
 
 
@@ -5068,6 +5174,279 @@ var TEMPLATE = String(String).split('String');
 
 /***/ }),
 
+/***/ "../node_modules/core-js/internals/regexp-exec-abstract.js":
+/*!*****************************************************************!*\
+  !*** ../node_modules/core-js/internals/regexp-exec-abstract.js ***!
+  \*****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var global = __webpack_require__(/*! ../internals/global */ "../node_modules/core-js/internals/global.js");
+var call = __webpack_require__(/*! ../internals/function-call */ "../node_modules/core-js/internals/function-call.js");
+var anObject = __webpack_require__(/*! ../internals/an-object */ "../node_modules/core-js/internals/an-object.js");
+var isCallable = __webpack_require__(/*! ../internals/is-callable */ "../node_modules/core-js/internals/is-callable.js");
+var classof = __webpack_require__(/*! ../internals/classof-raw */ "../node_modules/core-js/internals/classof-raw.js");
+var regexpExec = __webpack_require__(/*! ../internals/regexp-exec */ "../node_modules/core-js/internals/regexp-exec.js");
+
+var TypeError = global.TypeError;
+
+// `RegExpExec` abstract operation
+// https://tc39.es/ecma262/#sec-regexpexec
+module.exports = function (R, S) {
+  var exec = R.exec;
+  if (isCallable(exec)) {
+    var result = call(exec, R, S);
+    if (result !== null) anObject(result);
+    return result;
+  }
+  if (classof(R) === 'RegExp') return call(regexpExec, R, S);
+  throw TypeError('RegExp#exec called on incompatible receiver');
+};
+
+
+/***/ }),
+
+/***/ "../node_modules/core-js/internals/regexp-exec.js":
+/*!********************************************************!*\
+  !*** ../node_modules/core-js/internals/regexp-exec.js ***!
+  \********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/* eslint-disable regexp/no-empty-capturing-group, regexp/no-empty-group, regexp/no-lazy-ends -- testing */
+/* eslint-disable regexp/no-useless-quantifier -- testing */
+var call = __webpack_require__(/*! ../internals/function-call */ "../node_modules/core-js/internals/function-call.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../node_modules/core-js/internals/function-uncurry-this.js");
+var toString = __webpack_require__(/*! ../internals/to-string */ "../node_modules/core-js/internals/to-string.js");
+var regexpFlags = __webpack_require__(/*! ../internals/regexp-flags */ "../node_modules/core-js/internals/regexp-flags.js");
+var stickyHelpers = __webpack_require__(/*! ../internals/regexp-sticky-helpers */ "../node_modules/core-js/internals/regexp-sticky-helpers.js");
+var shared = __webpack_require__(/*! ../internals/shared */ "../node_modules/core-js/internals/shared.js");
+var create = __webpack_require__(/*! ../internals/object-create */ "../node_modules/core-js/internals/object-create.js");
+var getInternalState = __webpack_require__(/*! ../internals/internal-state */ "../node_modules/core-js/internals/internal-state.js").get;
+var UNSUPPORTED_DOT_ALL = __webpack_require__(/*! ../internals/regexp-unsupported-dot-all */ "../node_modules/core-js/internals/regexp-unsupported-dot-all.js");
+var UNSUPPORTED_NCG = __webpack_require__(/*! ../internals/regexp-unsupported-ncg */ "../node_modules/core-js/internals/regexp-unsupported-ncg.js");
+
+var nativeReplace = shared('native-string-replace', String.prototype.replace);
+var nativeExec = RegExp.prototype.exec;
+var patchedExec = nativeExec;
+var charAt = uncurryThis(''.charAt);
+var indexOf = uncurryThis(''.indexOf);
+var replace = uncurryThis(''.replace);
+var stringSlice = uncurryThis(''.slice);
+
+var UPDATES_LAST_INDEX_WRONG = (function () {
+  var re1 = /a/;
+  var re2 = /b*/g;
+  call(nativeExec, re1, 'a');
+  call(nativeExec, re2, 'a');
+  return re1.lastIndex !== 0 || re2.lastIndex !== 0;
+})();
+
+var UNSUPPORTED_Y = stickyHelpers.BROKEN_CARET;
+
+// nonparticipating capturing group, copied from es5-shim's String#split patch.
+var NPCG_INCLUDED = /()??/.exec('')[1] !== undefined;
+
+var PATCH = UPDATES_LAST_INDEX_WRONG || NPCG_INCLUDED || UNSUPPORTED_Y || UNSUPPORTED_DOT_ALL || UNSUPPORTED_NCG;
+
+if (PATCH) {
+  patchedExec = function exec(string) {
+    var re = this;
+    var state = getInternalState(re);
+    var str = toString(string);
+    var raw = state.raw;
+    var result, reCopy, lastIndex, match, i, object, group;
+
+    if (raw) {
+      raw.lastIndex = re.lastIndex;
+      result = call(patchedExec, raw, str);
+      re.lastIndex = raw.lastIndex;
+      return result;
+    }
+
+    var groups = state.groups;
+    var sticky = UNSUPPORTED_Y && re.sticky;
+    var flags = call(regexpFlags, re);
+    var source = re.source;
+    var charsAdded = 0;
+    var strCopy = str;
+
+    if (sticky) {
+      flags = replace(flags, 'y', '');
+      if (indexOf(flags, 'g') === -1) {
+        flags += 'g';
+      }
+
+      strCopy = stringSlice(str, re.lastIndex);
+      // Support anchored sticky behavior.
+      if (re.lastIndex > 0 && (!re.multiline || re.multiline && charAt(str, re.lastIndex - 1) !== '\n')) {
+        source = '(?: ' + source + ')';
+        strCopy = ' ' + strCopy;
+        charsAdded++;
+      }
+      // ^(? + rx + ) is needed, in combination with some str slicing, to
+      // simulate the 'y' flag.
+      reCopy = new RegExp('^(?:' + source + ')', flags);
+    }
+
+    if (NPCG_INCLUDED) {
+      reCopy = new RegExp('^' + source + '$(?!\\s)', flags);
+    }
+    if (UPDATES_LAST_INDEX_WRONG) lastIndex = re.lastIndex;
+
+    match = call(nativeExec, sticky ? reCopy : re, strCopy);
+
+    if (sticky) {
+      if (match) {
+        match.input = stringSlice(match.input, charsAdded);
+        match[0] = stringSlice(match[0], charsAdded);
+        match.index = re.lastIndex;
+        re.lastIndex += match[0].length;
+      } else re.lastIndex = 0;
+    } else if (UPDATES_LAST_INDEX_WRONG && match) {
+      re.lastIndex = re.global ? match.index + match[0].length : lastIndex;
+    }
+    if (NPCG_INCLUDED && match && match.length > 1) {
+      // Fix browsers whose `exec` methods don't consistently return `undefined`
+      // for NPCG, like IE8. NOTE: This doesn' work for /(.?)?/
+      call(nativeReplace, match[0], reCopy, function () {
+        for (i = 1; i < arguments.length - 2; i++) {
+          if (arguments[i] === undefined) match[i] = undefined;
+        }
+      });
+    }
+
+    if (match && groups) {
+      match.groups = object = create(null);
+      for (i = 0; i < groups.length; i++) {
+        group = groups[i];
+        object[group[0]] = match[group[1]];
+      }
+    }
+
+    return match;
+  };
+}
+
+module.exports = patchedExec;
+
+
+/***/ }),
+
+/***/ "../node_modules/core-js/internals/regexp-flags.js":
+/*!*********************************************************!*\
+  !*** ../node_modules/core-js/internals/regexp-flags.js ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var anObject = __webpack_require__(/*! ../internals/an-object */ "../node_modules/core-js/internals/an-object.js");
+
+// `RegExp.prototype.flags` getter implementation
+// https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
+module.exports = function () {
+  var that = anObject(this);
+  var result = '';
+  if (that.global) result += 'g';
+  if (that.ignoreCase) result += 'i';
+  if (that.multiline) result += 'm';
+  if (that.dotAll) result += 's';
+  if (that.unicode) result += 'u';
+  if (that.sticky) result += 'y';
+  return result;
+};
+
+
+/***/ }),
+
+/***/ "../node_modules/core-js/internals/regexp-sticky-helpers.js":
+/*!******************************************************************!*\
+  !*** ../node_modules/core-js/internals/regexp-sticky-helpers.js ***!
+  \******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var fails = __webpack_require__(/*! ../internals/fails */ "../node_modules/core-js/internals/fails.js");
+var global = __webpack_require__(/*! ../internals/global */ "../node_modules/core-js/internals/global.js");
+
+// babel-minify and Closure Compiler transpiles RegExp('a', 'y') -> /a/y and it causes SyntaxError
+var $RegExp = global.RegExp;
+
+var UNSUPPORTED_Y = fails(function () {
+  var re = $RegExp('a', 'y');
+  re.lastIndex = 2;
+  return re.exec('abcd') != null;
+});
+
+// UC Browser bug
+// https://github.com/zloirock/core-js/issues/1008
+var MISSED_STICKY = UNSUPPORTED_Y || fails(function () {
+  return !$RegExp('a', 'y').sticky;
+});
+
+var BROKEN_CARET = UNSUPPORTED_Y || fails(function () {
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=773687
+  var re = $RegExp('^r', 'gy');
+  re.lastIndex = 2;
+  return re.exec('str') != null;
+});
+
+module.exports = {
+  BROKEN_CARET: BROKEN_CARET,
+  MISSED_STICKY: MISSED_STICKY,
+  UNSUPPORTED_Y: UNSUPPORTED_Y
+};
+
+
+/***/ }),
+
+/***/ "../node_modules/core-js/internals/regexp-unsupported-dot-all.js":
+/*!***********************************************************************!*\
+  !*** ../node_modules/core-js/internals/regexp-unsupported-dot-all.js ***!
+  \***********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var fails = __webpack_require__(/*! ../internals/fails */ "../node_modules/core-js/internals/fails.js");
+var global = __webpack_require__(/*! ../internals/global */ "../node_modules/core-js/internals/global.js");
+
+// babel-minify and Closure Compiler transpiles RegExp('.', 's') -> /./s and it causes SyntaxError
+var $RegExp = global.RegExp;
+
+module.exports = fails(function () {
+  var re = $RegExp('.', 's');
+  return !(re.dotAll && re.exec('\n') && re.flags === 's');
+});
+
+
+/***/ }),
+
+/***/ "../node_modules/core-js/internals/regexp-unsupported-ncg.js":
+/*!*******************************************************************!*\
+  !*** ../node_modules/core-js/internals/regexp-unsupported-ncg.js ***!
+  \*******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var fails = __webpack_require__(/*! ../internals/fails */ "../node_modules/core-js/internals/fails.js");
+var global = __webpack_require__(/*! ../internals/global */ "../node_modules/core-js/internals/global.js");
+
+// babel-minify and Closure Compiler transpiles RegExp('(?<a>b)', 'g') -> /(?<a>b)/g and it causes SyntaxError
+var $RegExp = global.RegExp;
+
+module.exports = fails(function () {
+  var re = $RegExp('(?<a>b)', 'g');
+  return re.exec('b').groups.a !== 'b' ||
+    'b'.replace(re, '$<a>c') !== 'bc';
+});
+
+
+/***/ }),
+
 /***/ "../node_modules/core-js/internals/require-object-coercible.js":
 /*!*********************************************************************!*\
   !*** ../node_modules/core-js/internals/require-object-coercible.js ***!
@@ -5243,6 +5622,53 @@ module.exports = function (O, defaultConstructor) {
   var C = anObject(O).constructor;
   var S;
   return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? defaultConstructor : aConstructor(S);
+};
+
+
+/***/ }),
+
+/***/ "../node_modules/core-js/internals/string-multibyte.js":
+/*!*************************************************************!*\
+  !*** ../node_modules/core-js/internals/string-multibyte.js ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../node_modules/core-js/internals/function-uncurry-this.js");
+var toIntegerOrInfinity = __webpack_require__(/*! ../internals/to-integer-or-infinity */ "../node_modules/core-js/internals/to-integer-or-infinity.js");
+var toString = __webpack_require__(/*! ../internals/to-string */ "../node_modules/core-js/internals/to-string.js");
+var requireObjectCoercible = __webpack_require__(/*! ../internals/require-object-coercible */ "../node_modules/core-js/internals/require-object-coercible.js");
+
+var charAt = uncurryThis(''.charAt);
+var charCodeAt = uncurryThis(''.charCodeAt);
+var stringSlice = uncurryThis(''.slice);
+
+var createMethod = function (CONVERT_TO_STRING) {
+  return function ($this, pos) {
+    var S = toString(requireObjectCoercible($this));
+    var position = toIntegerOrInfinity(pos);
+    var size = S.length;
+    var first, second;
+    if (position < 0 || position >= size) return CONVERT_TO_STRING ? '' : undefined;
+    first = charCodeAt(S, position);
+    return first < 0xD800 || first > 0xDBFF || position + 1 === size
+      || (second = charCodeAt(S, position + 1)) < 0xDC00 || second > 0xDFFF
+        ? CONVERT_TO_STRING
+          ? charAt(S, position)
+          : first
+        : CONVERT_TO_STRING
+          ? stringSlice(S, position, position + 2)
+          : (first - 0xD800 << 10) + (second - 0xDC00) + 0x10000;
+  };
+};
+
+module.exports = {
+  // `String.prototype.codePointAt` method
+  // https://tc39.es/ecma262/#sec-string.prototype.codepointat
+  codeAt: createMethod(false),
+  // `String.prototype.at` method
+  // https://github.com/mathiasbynens/String.prototype.at
+  charAt: createMethod(true)
 };
 
 
@@ -6603,6 +7029,27 @@ $({ target: PROMISE, stat: true, forced: INCORRECT_ITERATION }, {
 
 /***/ }),
 
+/***/ "../node_modules/core-js/modules/es.regexp.exec.js":
+/*!*********************************************************!*\
+  !*** ../node_modules/core-js/modules/es.regexp.exec.js ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__(/*! ../internals/export */ "../node_modules/core-js/internals/export.js");
+var exec = __webpack_require__(/*! ../internals/regexp-exec */ "../node_modules/core-js/internals/regexp-exec.js");
+
+// `RegExp.prototype.exec` method
+// https://tc39.es/ecma262/#sec-regexp.prototype.exec
+$({ target: 'RegExp', proto: true, forced: /./.exec !== exec }, {
+  exec: exec
+});
+
+
+/***/ }),
+
 /***/ "../node_modules/core-js/modules/es.string.includes.js":
 /*!*************************************************************!*\
   !*** ../node_modules/core-js/modules/es.string.includes.js ***!
@@ -6631,6 +7078,65 @@ $({ target: 'String', proto: true, forced: !correctIsRegExpLogic('includes') }, 
       arguments.length > 1 ? arguments[1] : undefined
     );
   }
+});
+
+
+/***/ }),
+
+/***/ "../node_modules/core-js/modules/es.string.match.js":
+/*!**********************************************************!*\
+  !*** ../node_modules/core-js/modules/es.string.match.js ***!
+  \**********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var call = __webpack_require__(/*! ../internals/function-call */ "../node_modules/core-js/internals/function-call.js");
+var fixRegExpWellKnownSymbolLogic = __webpack_require__(/*! ../internals/fix-regexp-well-known-symbol-logic */ "../node_modules/core-js/internals/fix-regexp-well-known-symbol-logic.js");
+var anObject = __webpack_require__(/*! ../internals/an-object */ "../node_modules/core-js/internals/an-object.js");
+var toLength = __webpack_require__(/*! ../internals/to-length */ "../node_modules/core-js/internals/to-length.js");
+var toString = __webpack_require__(/*! ../internals/to-string */ "../node_modules/core-js/internals/to-string.js");
+var requireObjectCoercible = __webpack_require__(/*! ../internals/require-object-coercible */ "../node_modules/core-js/internals/require-object-coercible.js");
+var getMethod = __webpack_require__(/*! ../internals/get-method */ "../node_modules/core-js/internals/get-method.js");
+var advanceStringIndex = __webpack_require__(/*! ../internals/advance-string-index */ "../node_modules/core-js/internals/advance-string-index.js");
+var regExpExec = __webpack_require__(/*! ../internals/regexp-exec-abstract */ "../node_modules/core-js/internals/regexp-exec-abstract.js");
+
+// @@match logic
+fixRegExpWellKnownSymbolLogic('match', function (MATCH, nativeMatch, maybeCallNative) {
+  return [
+    // `String.prototype.match` method
+    // https://tc39.es/ecma262/#sec-string.prototype.match
+    function match(regexp) {
+      var O = requireObjectCoercible(this);
+      var matcher = regexp == undefined ? undefined : getMethod(regexp, MATCH);
+      return matcher ? call(matcher, regexp, O) : new RegExp(regexp)[MATCH](toString(O));
+    },
+    // `RegExp.prototype[@@match]` method
+    // https://tc39.es/ecma262/#sec-regexp.prototype-@@match
+    function (string) {
+      var rx = anObject(this);
+      var S = toString(string);
+      var res = maybeCallNative(nativeMatch, rx, S);
+
+      if (res.done) return res.value;
+
+      if (!rx.global) return regExpExec(rx, S);
+
+      var fullUnicode = rx.unicode;
+      rx.lastIndex = 0;
+      var A = [];
+      var n = 0;
+      var result;
+      while ((result = regExpExec(rx, S)) !== null) {
+        var matchStr = toString(result[0]);
+        A[n] = matchStr;
+        if (matchStr === '') rx.lastIndex = advanceStringIndex(S, toLength(rx.lastIndex), fullUnicode);
+        n++;
+      }
+      return n === 0 ? null : A;
+    }
+  ];
 });
 
 
@@ -40621,12 +41127,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "../node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-redux */ "../node_modules/react-redux/es/index.js");
-/* harmony import */ var _redux_actions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../redux/actions */ "./redux/actions.ts");
-/* harmony import */ var _Game__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../Game */ "./components/Game/index.tsx");
-/* harmony import */ var _Menu__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../Menu */ "./components/Menu.tsx");
-/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./index.module.scss */ "./components/App/index.module.scss");
-/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_index_module_scss__WEBPACK_IMPORTED_MODULE_5__);
-
+/* harmony import */ var _Game__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Game */ "./components/Game/index.tsx");
+/* harmony import */ var _Menu__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../Menu */ "./components/Menu.tsx");
+/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./index.module.scss */ "./components/App/index.module.scss");
+/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_index_module_scss__WEBPACK_IMPORTED_MODULE_4__);
 
 
 
@@ -40640,21 +41144,13 @@ var mapState = function mapState(state) {
   };
 };
 
-var mapDispatch = {
-  serverConnect: _redux_actions__WEBPACK_IMPORTED_MODULE_2__["default"].connect
-};
-var connector = Object(react_redux__WEBPACK_IMPORTED_MODULE_1__["connect"])(mapState, mapDispatch);
+var connector = Object(react_redux__WEBPACK_IMPORTED_MODULE_1__["connect"])(mapState);
 
 var App = function App(props) {
-  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(function () {
-    if (props.connecting) {
-      props.serverConnect();
-    }
-  }, [props.connecting]);
   console.log(props);
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-    className: _index_module_scss__WEBPACK_IMPORTED_MODULE_5___default.a.App
-  }, props.connecting ? null : props.running ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Game__WEBPACK_IMPORTED_MODULE_3__["default"], null) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Menu__WEBPACK_IMPORTED_MODULE_4__["default"], null));
+    className: _index_module_scss__WEBPACK_IMPORTED_MODULE_4___default.a.App
+  }, props.connecting ? null : props.running ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Game__WEBPACK_IMPORTED_MODULE_2__["default"], null) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Menu__WEBPACK_IMPORTED_MODULE_3__["default"], null));
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (connector(App));
@@ -41673,12 +42169,11 @@ react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.render( /*#__PURE__*/react__WEB
 /*!**************************!*\
   !*** ./redux/actions.ts ***!
   \**************************/
-/*! exports provided: ActionTypes, default */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ActionTypes", function() { return ActionTypes; });
 /* harmony import */ var core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! core-js/modules/es.array.concat */ "../node_modules/core-js/modules/es.array.concat.js");
 /* harmony import */ var core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! core-js/modules/es.array.map */ "../node_modules/core-js/modules/es.array.map.js");
@@ -41708,20 +42203,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 var MOVE_DELAY = 2500;
-var ActionTypes;
-
-(function (ActionTypes) {
-  ActionTypes["CHOOSE_CARD"] = "CHOOSE_CARD";
-  ActionTypes["CHOOSE_GUESS"] = "CHOOSE_GUESS";
-  ActionTypes["CHOOSE_TARGET"] = "CHOOSE_TARGET";
-  ActionTypes["CONNECT"] = "CONNECT";
-  ActionTypes["RECONNECT"] = "RECONNECT";
-  ActionTypes["REGISTER_TIMEOUT"] = "REGISTER_TIMEOUT";
-  ActionTypes["RESET"] = "RESET";
-  ActionTypes["UPDATE"] = "UPDATE";
-  ActionTypes["WATCH"] = "WATCH";
-})(ActionTypes || (ActionTypes = {}));
-
 var chooseCard = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("choose_card");
 var chooseGuess = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("choose_guess", function (guessId) {
   var guess = guessId ? new _types__WEBPACK_IMPORTED_MODULE_7__["Card"](guessId) : null;
@@ -41731,24 +42212,27 @@ var chooseGuess = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAc
 });
 var chooseTarget = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("choose_target");
 var registerTimeout = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("register_timeout");
-var connect = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("connect");
-var startConnect = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("start_connect", /*#__PURE__*/function () {
+var create = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("create", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(_, _ref) {
-    var dispatch, ws;
+    var dispatch, getState, _getState, timeouts;
+
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            dispatch = _ref.dispatch;
-            ws = new WebSocket("ws://".concat(window.location.host, "/api/ws"));
+            dispatch = _ref.dispatch, getState = _ref.getState;
+            _getState = getState(), timeouts = _getState.timeouts;
+            timeouts.map(function (id) {
+              return clearTimeout(id);
+            });
+            dispatch(socketSend({
+              action: "CREATE"
+            })); // const response = await fetch(Endpoint.CREATE, {method: "post"});
+            // if (response.ok) {
+            //   dispatch(startReset());
+            // }
 
-            ws.onopen = function (e) {
-              console.log(e); // TODO PICK UP FROM HERE
-
-              dispatch(connect(ws));
-            };
-
-          case 3:
+          case 4:
           case "end":
             return _context.stop();
         }
@@ -41760,66 +42244,29 @@ var startConnect = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createA
     return _ref2.apply(this, arguments);
   };
 }());
-var create = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("create", /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(_, _ref3) {
-    var dispatch, getState, _getState, timeouts, response;
-
+var play = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("play", /*#__PURE__*/function () {
+  var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(action, _ref3) {
+    var dispatch, getState, response, data, state, human, tid;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
             dispatch = _ref3.dispatch, getState = _ref3.getState;
-            _getState = getState(), timeouts = _getState.timeouts;
-            timeouts.map(function (id) {
-              return clearTimeout(id);
-            });
-            _context2.next = 5;
-            return fetch(_api__WEBPACK_IMPORTED_MODULE_6__["Endpoint"].CREATE, {
-              method: "post"
-            });
-
-          case 5:
-            response = _context2.sent;
-
-            if (response.ok) {
-              dispatch(startReset());
-            }
-
-          case 7:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-
-  return function (_x3, _x4) {
-    return _ref4.apply(this, arguments);
-  };
-}());
-var play = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("play", /*#__PURE__*/function () {
-  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(action, _ref5) {
-    var dispatch, getState, response, data, state, human, tid;
-    return regeneratorRuntime.wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            dispatch = _ref5.dispatch, getState = _ref5.getState;
             dispatch(chooseCard(null));
             dispatch(chooseGuess(null));
             dispatch(chooseTarget(null));
-            _context3.next = 6;
+            _context2.next = 6;
             return fetch("".concat(_api__WEBPACK_IMPORTED_MODULE_6__["Endpoint"].STEP, "/").concat(action.id));
 
           case 6:
-            response = _context3.sent;
-            _context3.t0 = _api__WEBPACK_IMPORTED_MODULE_6__["buildGameState"];
-            _context3.next = 10;
+            response = _context2.sent;
+            _context2.t0 = _api__WEBPACK_IMPORTED_MODULE_6__["buildGameState"];
+            _context2.next = 10;
             return response.json();
 
           case 10:
-            _context3.t1 = _context3.sent;
-            data = (0, _context3.t0)(_context3.t1);
+            _context2.t1 = _context2.sent;
+            data = (0, _context2.t0)(_context2.t1);
             dispatch(update(data));
             state = getState();
             human = Object(_selectors__WEBPACK_IMPORTED_MODULE_8__["getHumanPlayer"])(state);
@@ -41833,41 +42280,41 @@ var play = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThun
 
           case 16:
           case "end":
-            return _context3.stop();
+            return _context2.stop();
         }
       }
-    }, _callee3);
+    }, _callee2);
   }));
 
-  return function (_x5, _x6) {
-    return _ref6.apply(this, arguments);
+  return function (_x3, _x4) {
+    return _ref4.apply(this, arguments);
   };
 }());
 var reset = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("reset");
 var startReset = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("start_reset", /*#__PURE__*/function () {
-  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(_, _ref7) {
+  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(_, _ref5) {
     var dispatch, getState, _getState2, timeouts, response, data, state, tid;
 
-    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context3.prev = _context3.next) {
           case 0:
-            dispatch = _ref7.dispatch, getState = _ref7.getState;
+            dispatch = _ref5.dispatch, getState = _ref5.getState;
             // Clear any queued actions
             _getState2 = getState(), timeouts = _getState2.timeouts;
             timeouts.map(function (id) {
               return clearTimeout(id);
             });
-            _context4.next = 5;
+            _context3.next = 5;
             return fetch(_api__WEBPACK_IMPORTED_MODULE_6__["Endpoint"].RESET);
 
           case 5:
-            response = _context4.sent;
-            _context4.next = 8;
+            response = _context3.sent;
+            _context3.next = 8;
             return response.json();
 
           case 8:
-            data = _context4.sent;
+            data = _context3.sent;
             dispatch(reset(Object(_api__WEBPACK_IMPORTED_MODULE_6__["buildGameState"])(data))); // If the first action isn't being taken by the human player, start stepping forward
 
             state = getState();
@@ -41881,36 +42328,43 @@ var startReset = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsy
 
           case 12:
           case "end":
-            return _context4.stop();
+            return _context3.stop();
         }
       }
-    }, _callee4);
+    }, _callee3);
   }));
 
-  return function (_x7, _x8) {
-    return _ref8.apply(this, arguments);
+  return function (_x5, _x6) {
+    return _ref6.apply(this, arguments);
   };
 }());
+var socketConnected = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("socket_connected");
+
+var socketReceive = function socketReceive(data) {
+  console.log(data);
+};
+
+var socketSend = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("socket_send");
 var step = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("step", /*#__PURE__*/function () {
-  var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(_, _ref9) {
+  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(_, _ref7) {
     var dispatch, getState, response, data, state, human, tid;
-    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+    return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context4.prev = _context4.next) {
           case 0:
-            dispatch = _ref9.dispatch, getState = _ref9.getState;
-            _context5.next = 3;
+            dispatch = _ref7.dispatch, getState = _ref7.getState;
+            _context4.next = 3;
             return fetch(_api__WEBPACK_IMPORTED_MODULE_6__["Endpoint"].STEP);
 
           case 3:
-            response = _context5.sent;
-            _context5.t0 = _api__WEBPACK_IMPORTED_MODULE_6__["buildGameState"];
-            _context5.next = 7;
+            response = _context4.sent;
+            _context4.t0 = _api__WEBPACK_IMPORTED_MODULE_6__["buildGameState"];
+            _context4.next = 7;
             return response.json();
 
           case 7:
-            _context5.t1 = _context5.sent;
-            data = (0, _context5.t0)(_context5.t1);
+            _context4.t1 = _context4.sent;
+            data = (0, _context4.t0)(_context4.t1);
             dispatch(update(data));
             state = getState();
             human = Object(_selectors__WEBPACK_IMPORTED_MODULE_8__["getHumanPlayer"])(state);
@@ -41924,27 +42378,27 @@ var step = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThun
 
           case 13:
           case "end":
-            return _context5.stop();
+            return _context4.stop();
         }
       }
-    }, _callee5);
+    }, _callee4);
   }));
 
-  return function (_x9, _x10) {
-    return _ref10.apply(this, arguments);
+  return function (_x7, _x8) {
+    return _ref8.apply(this, arguments);
   };
 }());
 var update = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("update");
 var watch = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("watch");
 var startWatch = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("start_watch", /*#__PURE__*/function () {
-  var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(_, _ref11) {
+  var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(_, _ref9) {
     var dispatch, getState, _getState3, gameOver, tid;
 
-    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+    return regeneratorRuntime.wrap(function _callee5$(_context5) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context5.prev = _context5.next) {
           case 0:
-            dispatch = _ref11.dispatch, getState = _ref11.getState;
+            dispatch = _ref9.dispatch, getState = _ref9.getState;
             dispatch(watch());
             _getState3 = getState(), gameOver = _getState3.gameOver;
 
@@ -41957,32 +42411,94 @@ var startWatch = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsy
 
           case 4:
           case "end":
-            return _context6.stop();
+            return _context5.stop();
         }
       }
-    }, _callee6);
+    }, _callee5);
   }));
 
-  return function (_x11, _x12) {
-    return _ref12.apply(this, arguments);
+  return function (_x9, _x10) {
+    return _ref10.apply(this, arguments);
   };
 }());
 /* harmony default export */ __webpack_exports__["default"] = ({
   chooseCard: chooseCard,
   chooseGuess: chooseGuess,
   chooseTarget: chooseTarget,
-  connect: connect,
   create: create,
   play: play,
   registerTimeout: registerTimeout,
   reset: reset,
-  startConnect: startConnect,
+  socketConnected: socketConnected,
+  socketReceive: socketReceive,
+  socketSend: socketSend,
   startReset: startReset,
   startWatch: startWatch,
   step: step,
   update: update,
   watch: watch
 });
+
+/***/ }),
+
+/***/ "./redux/middleware.ts":
+/*!*****************************!*\
+  !*** ./redux/middleware.ts ***!
+  \*****************************/
+/*! exports provided: createSocketMiddleware */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createSocketMiddleware", function() { return createSocketMiddleware; });
+/* harmony import */ var core_js_modules_es_regexp_exec__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! core-js/modules/es.regexp.exec */ "../node_modules/core-js/modules/es.regexp.exec.js");
+/* harmony import */ var core_js_modules_es_regexp_exec__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_regexp_exec__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var core_js_modules_es_string_match__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! core-js/modules/es.string.match */ "../node_modules/core-js/modules/es.string.match.js");
+/* harmony import */ var core_js_modules_es_string_match__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_string_match__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _actions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./actions */ "./redux/actions.ts");
+
+
+
+var createSocketMiddleware = function createSocketMiddleware(url) {
+  var middleware = function middleware(storeApi) {
+    var socket = null;
+
+    var createSocket = function createSocket() {
+      socket = new WebSocket(url);
+
+      socket.onopen = function (event) {
+        storeApi.dispatch(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].socketConnected());
+      };
+
+      socket.onmessage = function (event) {
+        _actions__WEBPACK_IMPORTED_MODULE_2__["default"].socketReceive(event.data); // storeApi.dispatch(Actions.socketReceive(event.data));
+      }; // Try to reconnect automatically
+
+
+      socket.onclose = function (event) {
+        createSocket();
+      };
+    };
+
+    createSocket();
+    return function (next) {
+      return function (action) {
+        if (_actions__WEBPACK_IMPORTED_MODULE_2__["default"].socketSend.match(action)) {
+          if (socket === null) {
+            throw new Error("Cannot send message, socket closed");
+          }
+
+          socket.send(JSON.stringify(action.payload));
+          return;
+        }
+
+        return next(action);
+      };
+    };
+  };
+
+  return middleware;
+};
 
 /***/ }),
 
@@ -41996,10 +42512,14 @@ var startWatch = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsy
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "store", function() { return store; });
-/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! core-js/modules/es.array.map */ "../node_modules/core-js/modules/es.array.map.js");
-/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @reduxjs/toolkit */ "../node_modules/@reduxjs/toolkit/dist/redux-toolkit.esm.js");
-/* harmony import */ var _actions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./actions */ "./redux/actions.ts");
+/* harmony import */ var core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! core-js/modules/es.array.concat */ "../node_modules/core-js/modules/es.array.concat.js");
+/* harmony import */ var core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! core-js/modules/es.array.map */ "../node_modules/core-js/modules/es.array.map.js");
+/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @reduxjs/toolkit */ "../node_modules/@reduxjs/toolkit/dist/redux-toolkit.esm.js");
+/* harmony import */ var _actions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./actions */ "./redux/actions.ts");
+/* harmony import */ var _middleware__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./middleware */ "./redux/middleware.ts");
+
 
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
@@ -42021,6 +42541,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
  // import { current } from 'immer'
 
 
+
 var initialState = {
   chosenCard: null,
   connecting: true,
@@ -42038,23 +42559,19 @@ var initialState = {
   priestInfo: [],
   validActions: [],
   watching: false,
-  winners: [],
-  ws: null
+  winners: []
 };
-var store = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_1__["configureStore"])({
-  reducer: Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_1__["createReducer"])(initialState, function (builder) {
-    builder.addCase(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].chooseCard, function (state, action) {
+var store = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_2__["configureStore"])({
+  reducer: Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_2__["createReducer"])(initialState, function (builder) {
+    builder.addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].chooseCard, function (state, action) {
       state.chosenCard = action.payload;
-    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].chooseGuess, function (state, action) {
+    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].chooseGuess, function (state, action) {
       state.guess = action.payload;
-    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].chooseTarget, function (state, action) {
+    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].chooseTarget, function (state, action) {
       state.target = action.payload;
-    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].connect, function (state, action) {
-      state.connecting = false;
-      state.ws = action.payload;
-    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].registerTimeout, function (state, action) {
+    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].registerTimeout, function (state, action) {
       state.timeouts.push(action.payload);
-    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].reset, function (state, action) {
+    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].reset, function (state, action) {
       state = _objectSpread(_objectSpread(_objectSpread({}, initialState), action.payload), {}, {
         players: action.payload.players.map(function (p) {
           var _state$players$p$posi, _state$players$p$posi2;
@@ -42069,11 +42586,9 @@ var store = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_1__["configureStore
         running: true
       });
       return state;
-    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].startConnect.pending, function (state) {
-      state.connecting = true;
-    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].startConnect.rejected, function (state) {
-      state.connecting = false; // TODO show an error message?
-    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].update, function (state, action) {
+    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].socketConnected, function (state) {
+      state.connecting = false;
+    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].update, function (state, action) {
       state = _objectSpread(_objectSpread(_objectSpread({}, state), action.payload), {}, {
         players: action.payload.players.map(function (p) {
           var wins = p.wins,
@@ -42100,10 +42615,14 @@ var store = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_1__["configureStore
       }
 
       return state;
-    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].watch, function (state) {
+    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].watch, function (state) {
       state.watching = true;
     });
-  })
+  }),
+  middleware: function middleware(getDefaultMiddleware) {
+    var socketMiddleware = Object(_middleware__WEBPACK_IMPORTED_MODULE_4__["createSocketMiddleware"])("ws://".concat(window.location.host, "/api/ws"));
+    return getDefaultMiddleware().concat(socketMiddleware);
+  }
 });
 /* harmony default export */ __webpack_exports__["default"] = (store);
 

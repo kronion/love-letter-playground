@@ -1,8 +1,9 @@
 import { configureStore, createReducer } from '@reduxjs/toolkit';
 // import { current } from 'immer'
 
-import { Card, GameState, Player } from '../types'
-import Actions from './actions'
+import { Card, GameState, Player } from '../types';
+import Actions from './actions';
+import { createSocketMiddleware } from './middleware';
 
 
 export interface State extends GameState {
@@ -14,7 +15,6 @@ export interface State extends GameState {
   target: Player | null
   timeouts: ReturnType<typeof setTimeout>[]
   watching: boolean
-  ws: WebSocket | null
 }
 
 const initialState: State = {
@@ -36,7 +36,6 @@ const initialState: State = {
   validActions: [],
   watching: false,
   winners: [],
-  ws: null,
 }
 
 export const store = configureStore({
@@ -50,10 +49,6 @@ export const store = configureStore({
       })
       .addCase(Actions.chooseTarget, (state, action) => {
         state.target = action.payload;
-      })
-      .addCase(Actions.connect, (state, action) => {
-        state.connecting = false;
-        state.ws = action.payload;
       })
       .addCase(Actions.registerTimeout, (state, action) => {
         state.timeouts.push(action.payload)
@@ -70,12 +65,8 @@ export const store = configureStore({
         }
         return state;
       })
-      .addCase(Actions.startConnect.pending, (state) => {
-        state.connecting = true;
-      })
-      .addCase(Actions.startConnect.rejected, (state) => {
+      .addCase(Actions.socketConnected, (state) => {
         state.connecting = false;
-        // TODO show an error message?
       })
       .addCase(Actions.update, (state, action) => {
         state = {
@@ -94,7 +85,11 @@ export const store = configureStore({
       .addCase(Actions.watch, (state) => {
         state.watching = true;
       });
-  })
+  }),
+  middleware: getDefaultMiddleware => {
+    const socketMiddleware = createSocketMiddleware(`ws://${window.location.host}/api/ws`);
+    return getDefaultMiddleware().concat(socketMiddleware);
+  }
 });
 
 export default store;
