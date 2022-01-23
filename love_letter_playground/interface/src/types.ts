@@ -26,8 +26,9 @@ export class Card {
   }
 }
 
-type CardId = number
-type PlayerPosition = number
+export type CardId = number
+export type CardPosition = number
+export type PlayerPosition = number
 
 export interface GameAction {
   card: Card
@@ -58,13 +59,16 @@ export interface PriestInfo {
 
 export interface GameState {
   cardsRemaining: number
+  chosenCard: CardPosition | null
   currentPlayer: PlayerPosition | null
   discard: Card[]
   gameOver: boolean
+  guess: Card | null
   hand: Card[]
   plays: Play[]
   players: Player[]
   priestInfo: PriestInfo
+  target: PlayerPosition | null
   validActions: GameAction[]
   winners: PlayerPosition[]
 }

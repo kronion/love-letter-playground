@@ -4,17 +4,18 @@ import { connect, ConnectedProps } from 'react-redux'
 
 import Actions from '../../redux/actions'
 import { State } from '../../redux/reducer'
+import { getChosenCard, getGameState, getTargetPlayer } from '../../redux/selectors'
 import Card from '../Card'
 
 import styles from './index.module.scss'
 
 const mapProps = (state: State) => ({
-  chosenCard: state.chosenCard,
+  chosenCard: getChosenCard(state),
   currentPlayer: state.currentPlayer,
   gameOver: state.gameOver,
   players: state.players,
-  priestInfo: state.priestInfo,
-  target: state.target
+  priestInfo: getGameState(state).priestInfo,
+  target: getTargetPlayer(state),
 })
 
 const mapDispatch = {
@@ -69,7 +70,7 @@ const Opponents: React.FC<Props> = (props) => {
                 (
                   props.target?.position === p.position
                     ? <button onClick={() => props.chooseTarget(null)}>Deselect target</button>
-                    : <button onClick={() => props.chooseTarget(p)}>Choose as target</button>
+                    : <button onClick={() => props.chooseTarget(p.position)}>Choose as target</button>
                 )
               }
             </div>

@@ -3,14 +3,14 @@ import { connect, ConnectedProps } from 'react-redux'
 
 import Actions from '../../../redux/actions'
 import { State } from '../../../redux/reducer'
-import { getChosenGameAction, validTargetsExist } from '../../../redux/selectors'
+import { getChosenCard, getChosenGameAction, validTargetsExist } from '../../../redux/selectors'
 import { Card } from '../../../types'
 
 import styles from './index.module.scss'
 
 const mapProps = (state: State) => ({
   action: getChosenGameAction(state),
-  chosenCard: state.chosenCard,
+  chosenCard: getChosenCard(state),
   guess: state.guess,
   target: state.target,
   validTargetsExist: validTargetsExist(state)
@@ -28,6 +28,7 @@ const connector = connect(mapProps, mapDispatch)
 type Props = ConnectedProps<typeof connector>
 
 const SelectionWizard: React.FC<Props> = (props) => {
+  console.log(props.action);
   if (props.chosenCard === null) return null
     const clickCancel = () => {
       props.chooseCard(null)

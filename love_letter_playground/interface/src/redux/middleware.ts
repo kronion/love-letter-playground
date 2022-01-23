@@ -3,22 +3,26 @@ import Actions from './actions';
 export const createSocketMiddleware = (url: string) => {
   const middleware = storeApi => {
     var socket: WebSocket | null = null;
+    let retryTimeout = 2;
 
     const createSocket = () => {
       socket = new WebSocket(url);
+      console.log(socket);
 
-      socket.onopen = event => {
+      socket.onopen = () => {
         storeApi.dispatch(Actions.socketConnected());
+        retryTimeout = 2;
       };
 
       socket.onmessage = event => {
-        Actions.socketReceive(event.data);
-        // storeApi.dispatch(Actions.socketReceive(event.data));
+        const data = JSON.parse(event.data);
+        Actions.socketReceive(data, storeApi.dispatch);
       };
 
       // Try to reconnect automatically
-      socket.onclose = event => {
-        createSocket();
+      socket.onclose = () => {
+        setTimeout(createSocket, retryTimeout * 1000);
+        retryTimeout = Math.min(2 * retryTimeout, 30);
       };
     };
     createSocket();

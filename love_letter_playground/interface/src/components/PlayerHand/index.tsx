@@ -4,7 +4,7 @@ import { connect, ConnectedProps } from 'react-redux'
 
 import Actions from '../../redux/actions'
 import { State } from '../../redux/reducer'
-import { getHumanPlayer } from '../../redux/selectors'
+import { getChosenCard, getHand, getHumanPlayer, getTargetPlayer } from '../../redux/selectors'
 import { Card as CardType } from '../../types'
 import Card from '../Card'
 
@@ -12,11 +12,12 @@ import styles from './index.module.scss'
 import SelectionWizard from './SelectionWizard'
 
 const mapProps = (state: State) => ({
-  chosenCard: state.chosenCard,
+  chosenCard: getChosenCard(state),
+  chosenCardPos: state.chosenCard,
   disabled: state.currentPlayer !== 0,
-  hand: state.hand,
+  hand: getHand(state),
   player: getHumanPlayer(state),
-  target: state.target
+  target: getTargetPlayer(state),
 })
 
 const mapDispatch = {
@@ -39,11 +40,11 @@ const PlayerHand: React.FC<Props> = (props) => {
     <div className={classNames(classes)}>
       <div className={styles.hand}>
         {props.player.active
-          ? props.hand.map((card, i) => {
+          ? props.hand.map((card, pos) => {
             if (card.value !== 0) {
-              const selected = card === props.chosenCard
-              const input = (!(props.disabled || selected)) ? card : null
-              const onClick = () => props.chooseCard(input)
+              const selected = pos === props.chosenCardPos;
+              const input = (!(props.disabled || selected)) ? pos : null;
+              const onClick = () => props.chooseCard(input);
 
               const passedProps = {
                 card,
@@ -52,16 +53,15 @@ const PlayerHand: React.FC<Props> = (props) => {
                 selectable: true,
                 selected
               }
-
               return (
-                <div key={i} className={styles.cardContainer}>
+                <div key={pos} className={styles.cardContainer}>
                   {selected && <SelectionWizard/>}
                   {!selected && props.chosenCard?.value === CardType.CardValue.PRINCE &&
                     (
                       <div className={styles.targetButton}>
                         {props.target?.position === props.player.position
                           ? <button onClick={() => props.chooseTarget(null)}>Deselect target</button>
-                          : <button onClick={() => props.chooseTarget(props.player)}>Choose as target</button>
+                          : <button onClick={() => props.chooseTarget(props.player.position)}>Choose as target</button>
                         }
                       </div>
                     )

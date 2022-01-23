@@ -10,7 +10,7 @@ import PlayerHand from '../PlayerHand'
 import styles from './index.module.scss'
 
 const mapDispatch = {
-  reset: Actions.reset,
+  reset: Actions.sendReset,
 }
 
 const connector = connect(null, mapDispatch)
@@ -20,7 +20,7 @@ type Props = ConnectedProps<typeof connector>
 const Game: React.FC<Props> = (props) => {
   return (
     <div className={styles.Game}>
-      <button onClick={props.reset}>Reset</button>
+      <button onClick={() => props.reset()}>Reset</button>
       <Opponents/>
       <Board/>
       <PlayerHand/>

@@ -14,7 +14,7 @@ const mapState = (state: State) => ({
 })
 
 const mapDispatch = {
-  reset: Actions.reset,
+  reset: Actions.sendReset,
   watch: Actions.watch,
 }
 
@@ -36,7 +36,7 @@ const GameStatus: React.FC<Props> = (props) => {
             <h1 className={styles.announcement}>{props.playerOut ? 'DEFEAT' : 'VICTORY'}</h1>
             <div>
               <button onClick={props.watch}>{props.gameOver ? 'Review' : 'Continue watching'} Game</button>
-              <button onClick={props.reset}>New game</button>
+              <button onClick={() => props.reset()}>New game</button>
             </div>
           </div>
         </div>

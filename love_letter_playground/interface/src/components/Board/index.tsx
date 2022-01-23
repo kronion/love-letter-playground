@@ -2,14 +2,14 @@ import React from 'react'
 import { connect, ConnectedProps } from 'react-redux'
 
 import { State } from '../../redux/reducer'
+import { getGameState } from '../../redux/selectors'
 import Deck from '../Deck'
 import Play from '../Play'
 
 import styles from './index.module.scss'
 
 const mapProps = (state: State) => ({
-  plays: state.plays,
-  discard: state.discard,
+  plays: getGameState(state).plays,
 })
 
 const connector = connect(mapProps)

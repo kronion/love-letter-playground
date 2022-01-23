@@ -1,19 +1,18 @@
 import { configureStore, createReducer } from '@reduxjs/toolkit';
 // import { current } from 'immer'
 
-import { Card, GameState, Player } from '../types';
+import { CardId, CardPosition, PlayerPosition, Player, RawApiGameState } from '../types';
 import Actions from './actions';
 import { createSocketMiddleware } from './middleware';
 
 
-export interface State extends GameState {
-  chosenCard: Card | null
+// TODO add storage of player wins across games
+export interface State extends RawApiGameState {
+  chosenCard: CardPosition | null
   connecting: boolean
-  guess: Card | null
-  players: Player[]
+  guess: CardId | null
   running: boolean
-  target: Player | null
-  timeouts: ReturnType<typeof setTimeout>[]
+  target: PlayerPosition | null
   watching: boolean
 }
 
@@ -23,7 +22,7 @@ const initialState: State = {
   guess: null,
   running: false,
   target: null,
-  timeouts: [],
+  watching: false,
 
   cardsRemaining: 0,
   currentPlayer: null,
@@ -34,7 +33,6 @@ const initialState: State = {
   plays: [],
   priestInfo: [],
   validActions: [],
-  watching: false,
   winners: [],
 }
 
@@ -50,17 +48,11 @@ export const store = configureStore({
       .addCase(Actions.chooseTarget, (state, action) => {
         state.target = action.payload;
       })
-      .addCase(Actions.registerTimeout, (state, action) => {
-        state.timeouts.push(action.payload)
-      })
       .addCase(Actions.reset, (state, action) => {
         state = {
           ...initialState,
           ...action.payload,
-          players: action.payload.players.map(p => {
-            const { wins, ...rest } = p
-            return {...rest, wins: state.players[p.position]?.wins ?? wins} as Player
-          }),
+          connecting: false,
           running: true
         }
         return state;

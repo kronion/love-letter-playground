@@ -1,18 +1,19 @@
+import asyncio
 import uuid
 from enum import Enum
 from typing import Dict, Optional
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, WebSocket, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, WebSocket, WebSocketDisconnect, status
 from gym_love_letter.envs.base import InvalidPlayError, LoveLetterMultiAgentEnv
 
 from love_letter_playground.agents import HumanAgent, RandomAgent
 from love_letter_playground.interface.schema import GameOverSchema, ObservationSchema
 
 
-class Action(str, Enum):
+class Operation(str, Enum):
     CREATE = "create"
     RESET = "reset"
-
+    STEP = "step"
 
 
 def fetch_game_factory(cache):
@@ -47,27 +48,165 @@ def create_game():
     return env
 
 
-async def handle_websocket_message(ws: WebSocket, cache: Dict):
-    data = await ws.receive_json()
-
-    if "action" not in data:
-        await ws.send_json({"type": "error", "reason": "action type is required"})
-        return
-
-    action = data["action"]
-    if action == Action.CREATE:
+async def handle_create(ws: WebSocket, user_data) -> None:
+    if "game" in user_data:
+        response = {
+            "operation": Operation.CREATE,
+            "status": 400,
+            "detail": "game ongoing",
+        }
+    else:
         game = create_game()
-        uid = str(uuid.uuid4())
-        cache[uid] = game
+        user_data["game"] = game
+        game.reset()
+        game_state = ObservationSchema().dump(game.observe())
 
         response = {
+            "operation": Operation.CREATE,
             "status": 201,
             "detail": "created",
-            "data": {
-                "game": uid
-            }
+            "data": game_state,
+        }
+
+    await ws.send_json(response)
+
+
+async def handle_reset(ws: WebSocket, user_data) -> None:
+    if "game" not in user_data:
+        response = {
+            "operation": Operation.RESET,
+            "status": 400,
+            "detail": "no game ongoing",
+        }
+    else:
+        game = user_data["game"]
+        game.reset()
+        game_state = ObservationSchema().dump(game.observe())
+
+        response = {
+            "operation": Operation.RESET,
+            "status": 200,
+            "detail": "reset",
+            "data": game_state,
+        }
+
+    await ws.send_json(response)
+
+
+async def handle_step(ws: WebSocket, data, user_data) -> None:
+    try:
+        game = user_data["game"]
+    except KeyError:
+        response = {
+            "operation": Operation.STEP,
+            "status": 400,
+            "detail": "no game ongoing",
         }
         await ws.send_json(response)
+        return
+
+    try:
+        action_id = data["action_id"]
+    except KeyError:
+        await ws.send_json({"type": "error", "reason": "missing field: 'action_id'"})
+        return
+
+    # TODO confirm that the step was sent by the correct player
+    if not game.current_player.active:
+        raise RuntimeError("Current player not active?")
+
+    try:
+        game.protected_step(action_id, full_cycle=False)
+    except InvalidPlayError as e:
+        await ws.send_json({"type": "error", "reason": e})
+        return
+
+    schema = ObservationSchema() if game.players[0].active else GameOverSchema()
+    game_state = schema.dump(game.observe())
+    response = {
+        "operation": Operation.STEP,
+        "status": 200,
+        "detail": "stepped",
+        "data": game_state,
+    }
+    await ws.send_json(response)
+
+    # Step back around to human player
+    while not game.game_over and game.current_player != game.players[0]:
+        # Find the next active player to take a step for.
+        # Break if no players are active.
+        starting_player = game.current_player
+        while not game.current_player.active:
+            game._next_player()
+            if game.current_player == starting_player:
+                break
+
+        # Raise exception if no players are active (should never happen)
+        if not game.current_player.active:
+            raise RuntimeError("No active players")
+
+        if game.current_player != game.players[0]:
+            await asyncio.sleep(2)
+
+            count = 0
+            LIMIT = 100
+
+            while count < LIMIT:
+                try:
+                    agent = game.agents[game.current_player.position]
+                    action_id, _state = agent.predict(
+                        game.observe().vector, action_masks=game.valid_action_mask()
+                    )
+                    obs, reward, done, info = game.protected_step(
+                        action_id, full_cycle=False
+                    )
+                    break
+                except InvalidPlayError:
+                    count += 1
+
+            if count == LIMIT:
+                breakpoint()
+                raise RuntimeError("No valid play found")
+
+            # Step forward so that the next API call will be for an active player
+            while not game.current_player.active:
+                game._next_player()
+
+            schema = ObservationSchema() if game.players[0].active else GameOverSchema()
+            game_state = schema.dump(game.observe())
+            response = {
+                "operation": Operation.STEP,
+                "status": 200,
+                "detail": "stepped",
+                "data": game_state,
+            }
+            await ws.send_json(response)
+
+
+async def handle_websocket_message(ws: WebSocket, cache: Dict) -> None:
+    # TODO parse data with pydantic
+    data = await ws.receive_json()
+
+    if "operation" not in data:
+        await ws.send_json({"type": "error", "reason": "'operation' field is required"})
+        return
+
+    operation = data["operation"]
+    user_id = ws.session.get("user_id")
+    if user_id is None:
+        await ws.send_json({"type": "error", "reason": "user_id not recognized"})
+        return
+
+    if user_id not in cache:
+        cache[user_id] = {}
+    user_data = cache[user_id]
+
+    if operation == Operation.CREATE:
+        await handle_create(ws, user_data)
+    elif operation == Operation.RESET:
+        await handle_reset(ws, user_data)
+    elif operation == Operation.STEP:
+        await handle_step(ws, data, user_data)
 
 
 def make_api(cache: Dict):
@@ -152,34 +291,29 @@ def make_api(cache: Dict):
         return schema.dump(env.observe())
 
     @api.websocket("/ws")
-    async def test(websocket: WebSocket):
-        await websocket.accept()
-        await websocket.send_text(f"Connected")
-        while True:
-            await handle_websocket_message(websocket, cache)
+    async def test(ws: WebSocket, user_id: Optional[str] = Cookie(None)):
+        if user_id is None:
+            await ws.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
 
-    async def get_cookie(
-        websocket: WebSocket,
-        session: Optional[str] = Cookie(None),
-    ):
-        if session is None:
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return session
+        ws.session["user_id"] = user_id
+        if user_id not in cache:
+            cache[user_id] = {}
+        user_data = cache[user_id]
 
+        running = False
+        game_state = None
+        if "game" in user_data:
+            running = True
+            game = user_data["game"]
+            game_state = ObservationSchema().dump(game.observe())
 
-    @api.websocket("/items/{item_id}/ws")
-    async def websocket_endpoint(
-        websocket: WebSocket,
-        item_id: str,
-        cookie: str = Depends(get_cookie),
-    ):
-        await websocket.accept()
-        breakpoint()
-        while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(
-                f"Session cookie value is: {cookie}"
-            )
-            await websocket.send_text(f"Message text was: {data}, for item ID: {item_id}")
+        try:
+            await ws.accept()
+            await ws.send_json({"operation": "status", "status": 200, "data": game_state})
+            while True:
+                await handle_websocket_message(ws, cache)
+        except WebSocketDisconnect:
+            return
 
     return api

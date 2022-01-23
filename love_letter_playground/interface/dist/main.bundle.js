@@ -40931,161 +40931,6 @@ module.exports = g;
 
 /***/ }),
 
-/***/ "./api/endpoints.ts":
-/*!**************************!*\
-  !*** ./api/endpoints.ts ***!
-  \**************************/
-/*! exports provided: Endpoint */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Endpoint", function() { return Endpoint; });
-var Endpoint;
-
-(function (Endpoint) {
-  Endpoint["CONNECT"] = "/api/current_state";
-  Endpoint["CREATE"] = "/api/create";
-  Endpoint["RESET"] = "/api/reset";
-  Endpoint["STEP"] = "/api/step";
-})(Endpoint || (Endpoint = {}));
-
-/***/ }),
-
-/***/ "./api/index.ts":
-/*!**********************!*\
-  !*** ./api/index.ts ***!
-  \**********************/
-/*! exports provided: Endpoint, buildGameState */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _endpoints__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./endpoints */ "./api/endpoints.ts");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Endpoint", function() { return _endpoints__WEBPACK_IMPORTED_MODULE_0__["Endpoint"]; });
-
-/* harmony import */ var _transformers__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./transformers */ "./api/transformers.ts");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "buildGameState", function() { return _transformers__WEBPACK_IMPORTED_MODULE_1__["buildGameState"]; });
-
-
-
-
-/***/ }),
-
-/***/ "./api/transformers.ts":
-/*!*****************************!*\
-  !*** ./api/transformers.ts ***!
-  \*****************************/
-/*! exports provided: buildGameState */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildGameState", function() { return buildGameState; });
-/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! core-js/modules/es.array.map */ "../node_modules/core-js/modules/es.array.map.js");
-/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var core_js_modules_es_function_name__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! core-js/modules/es.function.name */ "../node_modules/core-js/modules/es.function.name.js");
-/* harmony import */ var core_js_modules_es_function_name__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_function_name__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var core_js_modules_es_number_constructor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! core-js/modules/es.number.constructor */ "../node_modules/core-js/modules/es.number.constructor.js");
-/* harmony import */ var core_js_modules_es_number_constructor__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_number_constructor__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var core_js_modules_es_number_parse_int__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! core-js/modules/es.number.parse-int */ "../node_modules/core-js/modules/es.number.parse-int.js");
-/* harmony import */ var core_js_modules_es_number_parse_int__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_number_parse_int__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var core_js_modules_es_object_entries__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! core-js/modules/es.object.entries */ "../node_modules/core-js/modules/es.object.entries.js");
-/* harmony import */ var core_js_modules_es_object_entries__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_entries__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../types */ "./types.ts");
-
-
-
-
-
-
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
-
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
-var buildGameState = function buildGameState(data) {
-  return {
-    cardsRemaining: data.cardsRemaining,
-    currentPlayer: data.currentPlayer,
-    discard: data.discard.map(function (cardId) {
-      return new _types__WEBPACK_IMPORTED_MODULE_5__["Card"](cardId);
-    }),
-    gameOver: data.gameOver,
-    hand: data.hand.map(function (cardId) {
-      return new _types__WEBPACK_IMPORTED_MODULE_5__["Card"](cardId);
-    }),
-    players: data.players.map(function (player) {
-      return buildPlayer(player);
-    }),
-    plays: data.plays.map(function (play) {
-      return buildPlay(play);
-    }),
-    priestInfo: buildPriestInfo(data.priestInfo),
-    validActions: data.validActions.map(function (action) {
-      return buildGameAction(action);
-    }),
-    winners: data.winners
-  };
-};
-
-var buildGameAction = function buildGameAction(data) {
-  return {
-    card: new _types__WEBPACK_IMPORTED_MODULE_5__["Card"](data.card),
-    guess: data.guess ? new _types__WEBPACK_IMPORTED_MODULE_5__["Card"](data.guess) : null,
-    id: data.id,
-    target: data.target
-  };
-};
-
-var buildPlay = function buildPlay(data) {
-  return {
-    action: buildGameAction(data.action),
-    player: data.player,
-    discard: data.discard ? new _types__WEBPACK_IMPORTED_MODULE_5__["Card"](data.discard) : null,
-    discardingPlayer: data.discardingPlayer
-  };
-};
-
-var buildPlayer = function buildPlayer(data) {
-  var _data$hand;
-
-  return {
-    active: data.active,
-    hand: (_data$hand = data.hand) === null || _data$hand === void 0 ? void 0 : _data$hand.map(function (cardId) {
-      return new _types__WEBPACK_IMPORTED_MODULE_5__["Card"](cardId);
-    }),
-    name: data.name,
-    position: data.position,
-    safe: data.safe,
-    wins: 0
-  };
-};
-
-var buildPriestInfo = function buildPriestInfo(data) {
-  var newData = {};
-
-  for (var _i = 0, _Object$entries = Object.entries(data); _i < _Object$entries.length; _i++) {
-    var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
-        _key = _Object$entries$_i[0],
-        value = _Object$entries$_i[1];
-
-    newData[Number.parseInt(_key)] = new _types__WEBPACK_IMPORTED_MODULE_5__["Card"](value);
-  }
-
-  return newData;
-};
-
-/***/ }),
-
 /***/ "./components/App/index.module.scss":
 /*!******************************************!*\
   !*** ./components/App/index.module.scss ***!
@@ -41200,10 +41045,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "../node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-redux */ "../node_modules/react-redux/es/index.js");
-/* harmony import */ var _Deck__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../Deck */ "./components/Deck/index.tsx");
-/* harmony import */ var _Play__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../Play */ "./components/Play/index.tsx");
-/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./index.module.scss */ "./components/Board/index.module.scss");
-/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_index_module_scss__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _redux_selectors__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../redux/selectors */ "./redux/selectors.ts");
+/* harmony import */ var _Deck__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../Deck */ "./components/Deck/index.tsx");
+/* harmony import */ var _Play__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../Play */ "./components/Play/index.tsx");
+/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./index.module.scss */ "./components/Board/index.module.scss");
+/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_index_module_scss__WEBPACK_IMPORTED_MODULE_6__);
+
 
 
 
@@ -41213,8 +41060,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var mapProps = function mapProps(state) {
   return {
-    plays: state.plays,
-    discard: state.discard
+    plays: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_3__["getGameState"])(state).plays
   };
 };
 
@@ -41222,16 +41068,16 @@ var connector = Object(react_redux__WEBPACK_IMPORTED_MODULE_2__["connect"])(mapP
 
 var Board = function Board(props) {
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: _index_module_scss__WEBPACK_IMPORTED_MODULE_5___default.a.Board
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_Deck__WEBPACK_IMPORTED_MODULE_3__["default"], null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: _index_module_scss__WEBPACK_IMPORTED_MODULE_5___default.a.plays
+    className: _index_module_scss__WEBPACK_IMPORTED_MODULE_6___default.a.Board
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_Deck__WEBPACK_IMPORTED_MODULE_4__["default"], null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    className: _index_module_scss__WEBPACK_IMPORTED_MODULE_6___default.a.plays
   }, props.plays.map(function (play, i) {
     return {
       play: play,
       i: i
     };
   }).reverse().map(function (o) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_Play__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_Play__WEBPACK_IMPORTED_MODULE_5__["default"], {
       key: o.i,
       play: o.play
     });
@@ -41452,7 +41298,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var mapDispatch = {
-  reset: _redux_actions__WEBPACK_IMPORTED_MODULE_2__["default"].reset
+  reset: _redux_actions__WEBPACK_IMPORTED_MODULE_2__["default"].sendReset
 };
 var connector = Object(react_redux__WEBPACK_IMPORTED_MODULE_1__["connect"])(null, mapDispatch);
 
@@ -41460,7 +41306,9 @@ var Game = function Game(props) {
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: _index_module_scss__WEBPACK_IMPORTED_MODULE_7___default.a.Game
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
-    onClick: props.reset
+    onClick: function onClick() {
+      return props.reset();
+    }
   }, "Reset"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Opponents__WEBPACK_IMPORTED_MODULE_5__["default"], null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Board__WEBPACK_IMPORTED_MODULE_3__["default"], null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_PlayerHand__WEBPACK_IMPORTED_MODULE_6__["default"], null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_GameStatus__WEBPACK_IMPORTED_MODULE_4__["default"], null));
 };
 
@@ -41528,7 +41376,7 @@ var mapState = function mapState(state) {
 };
 
 var mapDispatch = {
-  reset: _redux_actions__WEBPACK_IMPORTED_MODULE_2__["default"].reset,
+  reset: _redux_actions__WEBPACK_IMPORTED_MODULE_2__["default"].sendReset,
   watch: _redux_actions__WEBPACK_IMPORTED_MODULE_2__["default"].watch
 };
 var connector = Object(react_redux__WEBPACK_IMPORTED_MODULE_1__["connect"])(mapState, mapDispatch);
@@ -41552,7 +41400,9 @@ var GameStatus = function GameStatus(props) {
     }, props.playerOut ? 'DEFEAT' : 'VICTORY'), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
       onClick: props.watch
     }, props.gameOver ? 'Review' : 'Continue watching', " Game"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
-      onClick: props.reset
+      onClick: function onClick() {
+        return props.reset();
+      }
     }, "New game")))));
   } else {
     return null;
@@ -41606,7 +41456,7 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 
 
 var connector = Object(react_redux__WEBPACK_IMPORTED_MODULE_2__["connect"])(null, {
-  create: _redux_actions__WEBPACK_IMPORTED_MODULE_3__["default"].create
+  create: _redux_actions__WEBPACK_IMPORTED_MODULE_3__["default"].sendCreate
 });
 
 var Menu = /*#__PURE__*/function (_React$Component) {
@@ -41623,8 +41473,12 @@ var Menu = /*#__PURE__*/function (_React$Component) {
   _createClass(Menu, [{
     key: "render",
     value: function render() {
+      var _this = this;
+
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("button", {
-        onClick: this.props.create
+        onClick: function onClick() {
+          return _this.props.create();
+        }
       }, "Start game"));
     }
   }]);
@@ -41688,9 +41542,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react-redux */ "../node_modules/react-redux/es/index.js");
 /* harmony import */ var _redux_actions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../redux/actions */ "./redux/actions.ts");
-/* harmony import */ var _Card__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../Card */ "./components/Card/index.tsx");
-/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./index.module.scss */ "./components/Opponents/index.module.scss");
-/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(_index_module_scss__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var _redux_selectors__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../redux/selectors */ "./redux/selectors.ts");
+/* harmony import */ var _Card__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../Card */ "./components/Card/index.tsx");
+/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./index.module.scss */ "./components/Opponents/index.module.scss");
+/* harmony import */ var _index_module_scss__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(_index_module_scss__WEBPACK_IMPORTED_MODULE_10__);
 
 
 
@@ -41705,14 +41560,15 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
+
 var mapProps = function mapProps(state) {
   return {
-    chosenCard: state.chosenCard,
+    chosenCard: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_8__["getChosenCard"])(state),
     currentPlayer: state.currentPlayer,
     gameOver: state.gameOver,
     players: state.players,
-    priestInfo: state.priestInfo,
-    target: state.target
+    priestInfo: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_8__["getGameState"])(state).priestInfo,
+    target: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_8__["getTargetPlayer"])(state)
   };
 };
 
@@ -41723,42 +41579,42 @@ var connector = Object(react_redux__WEBPACK_IMPORTED_MODULE_6__["connect"])(mapP
 
 var Opponents = function Opponents(props) {
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", {
-    className: _index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.Opponents
+    className: _index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.Opponents
   }, props.players.map(function (p) {
     if (p.position > 0) {
       var _ref, _props$chosenCard, _props$target;
 
-      var classes = ["".concat(_index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.opponent), (_ref = {}, _defineProperty(_ref, "".concat(_index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.active), p.active), _defineProperty(_ref, "".concat(_index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.current), p.position === props.currentPlayer), _defineProperty(_ref, "".concat(_index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.out), !p.active), _ref)];
+      var classes = ["".concat(_index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.opponent), (_ref = {}, _defineProperty(_ref, "".concat(_index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.active), p.active), _defineProperty(_ref, "".concat(_index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.current), p.position === props.currentPlayer), _defineProperty(_ref, "".concat(_index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.out), !p.active), _ref)];
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", {
         key: p.position,
         className: classnames__WEBPACK_IMPORTED_MODULE_4___default()(classes)
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", {
-        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.hand
+        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.hand
       }, p.active ? props.priestInfo[p.position] ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", {
-        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.cardWrapper
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement(_Card__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.cardWrapper
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement(_Card__WEBPACK_IMPORTED_MODULE_9__["default"], {
         card: props.priestInfo[p.position]
       })) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", {
-        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.cardWrapper
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement(_Card__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.cardWrapper
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement(_Card__WEBPACK_IMPORTED_MODULE_9__["default"], {
         faceUp: false
       })) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", {
-        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.cardWrapper
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement(_Card__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.cardWrapper
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement(_Card__WEBPACK_IMPORTED_MODULE_9__["default"], {
         empty: true
-      })), !props.gameOver && p.active && p.position === props.currentPlayer && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement(_Card__WEBPACK_IMPORTED_MODULE_8__["default"], {
+      })), !props.gameOver && p.active && p.position === props.currentPlayer && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement(_Card__WEBPACK_IMPORTED_MODULE_9__["default"], {
         faceUp: false
       })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", {
-        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.description
+        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.description
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("p", {
-        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_9___default.a.name
+        className: _index_module_scss__WEBPACK_IMPORTED_MODULE_10___default.a.name
       }, p.name), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", null, "Wins: ", p.wins)), ((_props$chosenCard = props.chosenCard) === null || _props$chosenCard === void 0 ? void 0 : _props$chosenCard.hasTarget()) && p.active && !p.safe && (((_props$target = props.target) === null || _props$target === void 0 ? void 0 : _props$target.position) === p.position ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("button", {
         onClick: function onClick() {
           return props.chooseTarget(null);
         }
       }, "Deselect target") : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("button", {
         onClick: function onClick() {
-          return props.chooseTarget(p);
+          return props.chooseTarget(p.position);
         }
       }, "Choose as target")));
     }
@@ -41905,7 +41761,7 @@ __webpack_require__.r(__webpack_exports__);
 var mapProps = function mapProps(state) {
   return {
     action: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_5__["getChosenGameAction"])(state),
-    chosenCard: state.chosenCard,
+    chosenCard: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_5__["getChosenCard"])(state),
     guess: state.guess,
     target: state.target,
     validTargetsExist: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_5__["validTargetsExist"])(state)
@@ -41923,6 +41779,7 @@ var connector = Object(react_redux__WEBPACK_IMPORTED_MODULE_3__["connect"])(mapP
 var SelectionWizard = function SelectionWizard(props) {
   var _props$chosenCard;
 
+  console.log(props.action);
   if (props.chosenCard === null) return null;
 
   var clickCancel = function clickCancel() {
@@ -42069,11 +41926,12 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 var mapProps = function mapProps(state) {
   return {
-    chosenCard: state.chosenCard,
+    chosenCard: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_8__["getChosenCard"])(state),
+    chosenCardPos: state.chosenCard,
     disabled: state.currentPlayer !== 0,
-    hand: state.hand,
+    hand: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_8__["getHand"])(state),
     player: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_8__["getHumanPlayer"])(state),
-    target: state.target
+    target: Object(_redux_selectors__WEBPACK_IMPORTED_MODULE_8__["getTargetPlayer"])(state)
   };
 };
 
@@ -42091,12 +41949,12 @@ var PlayerHand = function PlayerHand(props) {
     className: classnames__WEBPACK_IMPORTED_MODULE_4___default()(classes)
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", {
     className: _index_module_scss__WEBPACK_IMPORTED_MODULE_11___default.a.hand
-  }, props.player.active ? props.hand.map(function (card, i) {
+  }, props.player.active ? props.hand.map(function (card, pos) {
     if (card.value !== 0) {
       var _props$chosenCard, _props$target;
 
-      var selected = card === props.chosenCard;
-      var input = !(props.disabled || selected) ? card : null;
+      var selected = pos === props.chosenCardPos;
+      var input = !(props.disabled || selected) ? pos : null;
 
       var onClick = function onClick() {
         return props.chooseCard(input);
@@ -42110,7 +41968,7 @@ var PlayerHand = function PlayerHand(props) {
         selected: selected
       };
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", {
-        key: i,
+        key: pos,
         className: _index_module_scss__WEBPACK_IMPORTED_MODULE_11___default.a.cardContainer
       }, selected && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement(_SelectionWizard__WEBPACK_IMPORTED_MODULE_12__["default"], null), !selected && ((_props$chosenCard = props.chosenCard) === null || _props$chosenCard === void 0 ? void 0 : _props$chosenCard.value) === _types__WEBPACK_IMPORTED_MODULE_9__["Card"].CardValue.PRINCE && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("div", {
         className: _index_module_scss__WEBPACK_IMPORTED_MODULE_11___default.a.targetButton
@@ -42120,7 +41978,7 @@ var PlayerHand = function PlayerHand(props) {
         }
       }, "Deselect target") : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement("button", {
         onClick: function onClick() {
-          return props.chooseTarget(props.player);
+          return props.chooseTarget(props.player.position);
         }
       }, "Choose as target")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_5___default.a.createElement(_Card__WEBPACK_IMPORTED_MODULE_10__["default"], passedProps));
     }
@@ -42174,22 +42032,13 @@ react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.render( /*#__PURE__*/react__WEB
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! core-js/modules/es.array.concat */ "../node_modules/core-js/modules/es.array.concat.js");
-/* harmony import */ var core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! core-js/modules/es.array.map */ "../node_modules/core-js/modules/es.array.map.js");
-/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var core_js_modules_es_object_to_string__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! core-js/modules/es.object.to-string */ "../node_modules/core-js/modules/es.object.to-string.js");
-/* harmony import */ var core_js_modules_es_object_to_string__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_to_string__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var core_js_modules_es_promise__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! core-js/modules/es.promise */ "../node_modules/core-js/modules/es.promise.js");
-/* harmony import */ var core_js_modules_es_promise__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_promise__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var regenerator_runtime_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! regenerator-runtime/runtime */ "../node_modules/regenerator-runtime/runtime.js");
-/* harmony import */ var regenerator_runtime_runtime__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(regenerator_runtime_runtime__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @reduxjs/toolkit */ "../node_modules/@reduxjs/toolkit/dist/redux-toolkit.esm.js");
-/* harmony import */ var _api__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../api */ "./api/index.ts");
-/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../types */ "./types.ts");
-/* harmony import */ var _selectors__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./selectors */ "./redux/selectors.ts");
-
-
+/* harmony import */ var core_js_modules_es_object_to_string__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! core-js/modules/es.object.to-string */ "../node_modules/core-js/modules/es.object.to-string.js");
+/* harmony import */ var core_js_modules_es_object_to_string__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_to_string__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var core_js_modules_es_promise__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! core-js/modules/es.promise */ "../node_modules/core-js/modules/es.promise.js");
+/* harmony import */ var core_js_modules_es_promise__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_promise__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var regenerator_runtime_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! regenerator-runtime/runtime */ "../node_modules/regenerator-runtime/runtime.js");
+/* harmony import */ var regenerator_runtime_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(regenerator_runtime_runtime__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @reduxjs/toolkit */ "../node_modules/@reduxjs/toolkit/dist/redux-toolkit.esm.js");
 
 
 
@@ -42199,40 +42048,22 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 
-
-
-
-var MOVE_DELAY = 2500;
-var chooseCard = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("choose_card");
-var chooseGuess = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("choose_guess", function (guessId) {
-  var guess = guessId ? new _types__WEBPACK_IMPORTED_MODULE_7__["Card"](guessId) : null;
-  return {
-    payload: guess
-  };
-});
-var chooseTarget = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("choose_target");
-var registerTimeout = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("register_timeout");
-var create = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("create", /*#__PURE__*/function () {
+var chooseCard = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAction"])("choose_card");
+var chooseGuess = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAction"])("choose_guess");
+var chooseTarget = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAction"])("choose_target");
+var sendCreate = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAsyncThunk"])("create", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(_, _ref) {
-    var dispatch, getState, _getState, timeouts;
-
+    var dispatch;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            dispatch = _ref.dispatch, getState = _ref.getState;
-            _getState = getState(), timeouts = _getState.timeouts;
-            timeouts.map(function (id) {
-              return clearTimeout(id);
-            });
+            dispatch = _ref.dispatch;
             dispatch(socketSend({
-              action: "create"
-            })); // const response = await fetch(Endpoint.CREATE, {method: "post"});
-            // if (response.ok) {
-            //   dispatch(startReset());
-            // }
+              operation: "create"
+            }));
 
-          case 4:
+          case 2:
           case "end":
             return _context.stop();
         }
@@ -42244,41 +42075,23 @@ var create = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncTh
     return _ref2.apply(this, arguments);
   };
 }());
-var play = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("play", /*#__PURE__*/function () {
+var play = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAsyncThunk"])("play", /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(action, _ref3) {
-    var dispatch, getState, response, data, state, human, tid;
+    var dispatch;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            dispatch = _ref3.dispatch, getState = _ref3.getState;
+            dispatch = _ref3.dispatch;
             dispatch(chooseCard(null));
             dispatch(chooseGuess(null));
             dispatch(chooseTarget(null));
-            _context2.next = 6;
-            return fetch("".concat(_api__WEBPACK_IMPORTED_MODULE_6__["Endpoint"].STEP, "/").concat(action.id));
+            dispatch(socketSend({
+              operation: "step",
+              action_id: action.id
+            }));
 
-          case 6:
-            response = _context2.sent;
-            _context2.t0 = _api__WEBPACK_IMPORTED_MODULE_6__["buildGameState"];
-            _context2.next = 10;
-            return response.json();
-
-          case 10:
-            _context2.t1 = _context2.sent;
-            data = (0, _context2.t0)(_context2.t1);
-            dispatch(update(data));
-            state = getState();
-            human = Object(_selectors__WEBPACK_IMPORTED_MODULE_8__["getHumanPlayer"])(state);
-
-            if (!state.gameOver && (human.active && state.currentPlayer !== human.position || state.watching)) {
-              tid = setTimeout(function () {
-                return dispatch(step());
-              }, MOVE_DELAY);
-              dispatch(registerTimeout(tid));
-            }
-
-          case 16:
+          case 5:
           case "end":
             return _context2.stop();
         }
@@ -42290,43 +42103,20 @@ var play = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThun
     return _ref4.apply(this, arguments);
   };
 }());
-var reset = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("reset");
-var startReset = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("start_reset", /*#__PURE__*/function () {
+var reset = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAction"])("reset");
+var sendReset = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAsyncThunk"])("send_reset", /*#__PURE__*/function () {
   var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(_, _ref5) {
-    var dispatch, getState, _getState2, timeouts, response, data, state, tid;
-
+    var dispatch;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
-            dispatch = _ref5.dispatch, getState = _ref5.getState;
-            // Clear any queued actions
-            _getState2 = getState(), timeouts = _getState2.timeouts;
-            timeouts.map(function (id) {
-              return clearTimeout(id);
-            });
-            _context3.next = 5;
-            return fetch(_api__WEBPACK_IMPORTED_MODULE_6__["Endpoint"].RESET);
+            dispatch = _ref5.dispatch;
+            dispatch(socketSend({
+              operation: "reset"
+            }));
 
-          case 5:
-            response = _context3.sent;
-            _context3.next = 8;
-            return response.json();
-
-          case 8:
-            data = _context3.sent;
-            dispatch(reset(Object(_api__WEBPACK_IMPORTED_MODULE_6__["buildGameState"])(data))); // If the first action isn't being taken by the human player, start stepping forward
-
-            state = getState();
-
-            if (state.currentPlayer !== Object(_selectors__WEBPACK_IMPORTED_MODULE_8__["getHumanPlayer"])(state).position) {
-              tid = setTimeout(function () {
-                return dispatch(step());
-              }, MOVE_DELAY);
-              dispatch(registerTimeout(tid));
-            }
-
-          case 12:
+          case 2:
           case "end":
             return _context3.stop();
         }
@@ -42338,103 +42128,45 @@ var startReset = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsy
     return _ref6.apply(this, arguments);
   };
 }());
-var socketConnected = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("socket_connected");
+var socketConnected = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAction"])("socket_connected");
 
-var socketReceive = function socketReceive(data) {
-  console.log(data);
+var socketReceive = function socketReceive(data, dispatch) {
+  if (data.operation === "create") {
+    if (data.status === 201) {
+      var gameData = data.data;
+      dispatch(reset(gameData));
+    }
+  } else if (data.operation === "reset") {
+    var _gameData = data.data;
+    dispatch(reset(_gameData));
+  } else if (data.operation === "status") {
+    var _gameData2 = data.data;
+
+    if (_gameData2 !== null) {
+      dispatch(reset(_gameData2));
+    }
+  } else if (data.operation === "step") {
+    var _gameData3 = data.data;
+    dispatch(update(_gameData3));
+  } else {
+    throw Error("operation not recognized");
+  }
 };
 
-var socketSend = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("socket_send");
-var step = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("step", /*#__PURE__*/function () {
-  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(_, _ref7) {
-    var dispatch, getState, response, data, state, human, tid;
-    return regeneratorRuntime.wrap(function _callee4$(_context4) {
-      while (1) {
-        switch (_context4.prev = _context4.next) {
-          case 0:
-            dispatch = _ref7.dispatch, getState = _ref7.getState;
-            _context4.next = 3;
-            return fetch(_api__WEBPACK_IMPORTED_MODULE_6__["Endpoint"].STEP);
-
-          case 3:
-            response = _context4.sent;
-            _context4.t0 = _api__WEBPACK_IMPORTED_MODULE_6__["buildGameState"];
-            _context4.next = 7;
-            return response.json();
-
-          case 7:
-            _context4.t1 = _context4.sent;
-            data = (0, _context4.t0)(_context4.t1);
-            dispatch(update(data));
-            state = getState();
-            human = Object(_selectors__WEBPACK_IMPORTED_MODULE_8__["getHumanPlayer"])(state);
-
-            if (!state.gameOver && (human.active && state.currentPlayer !== human.position || state.watching)) {
-              tid = setTimeout(function () {
-                return dispatch(step());
-              }, MOVE_DELAY);
-              dispatch(registerTimeout(tid));
-            }
-
-          case 13:
-          case "end":
-            return _context4.stop();
-        }
-      }
-    }, _callee4);
-  }));
-
-  return function (_x7, _x8) {
-    return _ref8.apply(this, arguments);
-  };
-}());
-var update = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("update");
-var watch = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAction"])("watch");
-var startWatch = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_5__["createAsyncThunk"])("start_watch", /*#__PURE__*/function () {
-  var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(_, _ref9) {
-    var dispatch, getState, _getState3, gameOver, tid;
-
-    return regeneratorRuntime.wrap(function _callee5$(_context5) {
-      while (1) {
-        switch (_context5.prev = _context5.next) {
-          case 0:
-            dispatch = _ref9.dispatch, getState = _ref9.getState;
-            dispatch(watch());
-            _getState3 = getState(), gameOver = _getState3.gameOver;
-
-            if (!gameOver) {
-              tid = setTimeout(function () {
-                return dispatch(step());
-              }, MOVE_DELAY);
-              dispatch(registerTimeout(tid));
-            }
-
-          case 4:
-          case "end":
-            return _context5.stop();
-        }
-      }
-    }, _callee5);
-  }));
-
-  return function (_x9, _x10) {
-    return _ref10.apply(this, arguments);
-  };
-}());
+var socketSend = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAction"])("socket_send");
+var update = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAction"])("update");
+var watch = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__["createAction"])("watch");
 /* harmony default export */ __webpack_exports__["default"] = ({
   chooseCard: chooseCard,
   chooseGuess: chooseGuess,
   chooseTarget: chooseTarget,
-  create: create,
   play: play,
-  registerTimeout: registerTimeout,
   reset: reset,
+  sendCreate: sendCreate,
+  sendReset: sendReset,
   socketConnected: socketConnected,
   socketReceive: socketReceive,
   socketSend: socketSend,
-  startReset: startReset,
-  startWatch: startWatch,
-  step: step,
   update: update,
   watch: watch
 });
@@ -42462,21 +42194,26 @@ __webpack_require__.r(__webpack_exports__);
 var createSocketMiddleware = function createSocketMiddleware(url) {
   var middleware = function middleware(storeApi) {
     var socket = null;
+    var retryTimeout = 2;
 
     var createSocket = function createSocket() {
       socket = new WebSocket(url);
+      console.log(socket);
 
-      socket.onopen = function (event) {
+      socket.onopen = function () {
         storeApi.dispatch(_actions__WEBPACK_IMPORTED_MODULE_2__["default"].socketConnected());
+        retryTimeout = 2;
       };
 
       socket.onmessage = function (event) {
-        _actions__WEBPACK_IMPORTED_MODULE_2__["default"].socketReceive(event.data); // storeApi.dispatch(Actions.socketReceive(event.data));
+        var data = JSON.parse(event.data);
+        _actions__WEBPACK_IMPORTED_MODULE_2__["default"].socketReceive(data, storeApi.dispatch);
       }; // Try to reconnect automatically
 
 
-      socket.onclose = function (event) {
-        createSocket();
+      socket.onclose = function () {
+        setTimeout(createSocket, retryTimeout * 1000);
+        retryTimeout = Math.min(2 * retryTimeout, 30);
       };
     };
 
@@ -42541,6 +42278,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
  // import { current } from 'immer'
 
 
+ // TODO add storage of player wins across games
 
 var initialState = {
   chosenCard: null,
@@ -42548,7 +42286,7 @@ var initialState = {
   guess: null,
   running: false,
   target: null,
-  timeouts: [],
+  watching: false,
   cardsRemaining: 0,
   currentPlayer: null,
   discard: [],
@@ -42558,7 +42296,6 @@ var initialState = {
   plays: [],
   priestInfo: [],
   validActions: [],
-  watching: false,
   winners: []
 };
 var store = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_2__["configureStore"])({
@@ -42569,20 +42306,9 @@ var store = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_2__["configureStore
       state.guess = action.payload;
     }).addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].chooseTarget, function (state, action) {
       state.target = action.payload;
-    }).addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].registerTimeout, function (state, action) {
-      state.timeouts.push(action.payload);
     }).addCase(_actions__WEBPACK_IMPORTED_MODULE_3__["default"].reset, function (state, action) {
       state = _objectSpread(_objectSpread(_objectSpread({}, initialState), action.payload), {}, {
-        players: action.payload.players.map(function (p) {
-          var _state$players$p$posi, _state$players$p$posi2;
-
-          var wins = p.wins,
-              rest = _objectWithoutProperties(p, ["wins"]);
-
-          return _objectSpread(_objectSpread({}, rest), {}, {
-            wins: (_state$players$p$posi = (_state$players$p$posi2 = state.players[p.position]) === null || _state$players$p$posi2 === void 0 ? void 0 : _state$players$p$posi2.wins) !== null && _state$players$p$posi !== void 0 ? _state$players$p$posi : wins
-          });
-        }),
+        connecting: false,
         running: true
       });
       return state;
@@ -42632,68 +42358,177 @@ var store = Object(_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_2__["configureStore
 /*!****************************!*\
   !*** ./redux/selectors.ts ***!
   \****************************/
-/*! exports provided: getChosenGameAction, getHumanPlayer, validTargetsExist */
+/*! exports provided: getGameState, getChosenCard, getHand, getChosenGameAction, getHumanPlayer, getTargetPlayer, validTargetsExist */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getGameState", function() { return getGameState; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getChosenCard", function() { return getChosenCard; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getHand", function() { return getHand; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getChosenGameAction", function() { return getChosenGameAction; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getHumanPlayer", function() { return getHumanPlayer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTargetPlayer", function() { return getTargetPlayer; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validTargetsExist", function() { return validTargetsExist; });
 /* harmony import */ var core_js_modules_es_array_filter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! core-js/modules/es.array.filter */ "../node_modules/core-js/modules/es.array.filter.js");
 /* harmony import */ var core_js_modules_es_array_filter__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_filter__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var core_js_modules_es_array_find__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! core-js/modules/es.array.find */ "../node_modules/core-js/modules/es.array.find.js");
 /* harmony import */ var core_js_modules_es_array_find__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_find__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var core_js_modules_es_array_some__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! core-js/modules/es.array.some */ "../node_modules/core-js/modules/es.array.some.js");
-/* harmony import */ var core_js_modules_es_array_some__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_some__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var reselect__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! reselect */ "../node_modules/reselect/es/index.js");
-/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../types */ "./types.ts");
+/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! core-js/modules/es.array.map */ "../node_modules/core-js/modules/es.array.map.js");
+/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var core_js_modules_es_array_some__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! core-js/modules/es.array.some */ "../node_modules/core-js/modules/es.array.some.js");
+/* harmony import */ var core_js_modules_es_array_some__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_some__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var core_js_modules_es_function_name__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! core-js/modules/es.function.name */ "../node_modules/core-js/modules/es.function.name.js");
+/* harmony import */ var core_js_modules_es_function_name__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_function_name__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var core_js_modules_es_number_constructor__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! core-js/modules/es.number.constructor */ "../node_modules/core-js/modules/es.number.constructor.js");
+/* harmony import */ var core_js_modules_es_number_constructor__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_number_constructor__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var core_js_modules_es_number_parse_int__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! core-js/modules/es.number.parse-int */ "../node_modules/core-js/modules/es.number.parse-int.js");
+/* harmony import */ var core_js_modules_es_number_parse_int__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_number_parse_int__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var core_js_modules_es_object_entries__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! core-js/modules/es.object.entries */ "../node_modules/core-js/modules/es.object.entries.js");
+/* harmony import */ var core_js_modules_es_object_entries__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_object_entries__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var reselect__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! reselect */ "../node_modules/reselect/es/index.js");
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../types */ "./types.ts");
 
 
 
 
 
 
-var actions = function actions(state) {
+
+
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+
+
+
+var buildGameAction = function buildGameAction(data) {
+  return {
+    card: new _types__WEBPACK_IMPORTED_MODULE_9__["Card"](data.card),
+    guess: data.guess ? new _types__WEBPACK_IMPORTED_MODULE_9__["Card"](data.guess) : null,
+    id: data.id,
+    target: data.target
+  };
+};
+
+var buildPlay = function buildPlay(data) {
+  return {
+    action: buildGameAction(data.action),
+    player: data.player,
+    discard: data.discard ? new _types__WEBPACK_IMPORTED_MODULE_9__["Card"](data.discard) : null,
+    discardingPlayer: data.discardingPlayer
+  };
+};
+
+var buildPlayer = function buildPlayer(data) {
+  var _data$hand;
+
+  return {
+    active: data.active,
+    hand: (_data$hand = data.hand) === null || _data$hand === void 0 ? void 0 : _data$hand.map(function (cardId) {
+      return new _types__WEBPACK_IMPORTED_MODULE_9__["Card"](cardId);
+    }),
+    name: data.name,
+    position: data.position,
+    safe: data.safe,
+    wins: 0
+  };
+};
+
+var buildPriestInfo = function buildPriestInfo(data) {
+  var newData = {};
+
+  for (var _i = 0, _Object$entries = Object.entries(data); _i < _Object$entries.length; _i++) {
+    var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
+        _key = _Object$entries$_i[0],
+        value = _Object$entries$_i[1];
+
+    newData[Number.parseInt(_key)] = new _types__WEBPACK_IMPORTED_MODULE_9__["Card"](value);
+  }
+
+  return newData;
+};
+
+var getGameState = function getGameState(state) {
+  return {
+    cardsRemaining: state.cardsRemaining,
+    chosenCard: state.chosenCard,
+    currentPlayer: state.currentPlayer,
+    discard: state.discard.map(function (cardId) {
+      return new _types__WEBPACK_IMPORTED_MODULE_9__["Card"](cardId);
+    }),
+    gameOver: state.gameOver,
+    guess: state.guess ? new _types__WEBPACK_IMPORTED_MODULE_9__["Card"](state.guess) : null,
+    hand: state.hand.map(function (cardId) {
+      return new _types__WEBPACK_IMPORTED_MODULE_9__["Card"](cardId);
+    }),
+    players: state.players.map(function (player) {
+      return buildPlayer(player);
+    }),
+    plays: state.plays.map(function (play) {
+      return buildPlay(play);
+    }),
+    priestInfo: buildPriestInfo(state.priestInfo),
+    target: state.target,
+    validActions: state.validActions.map(function (action) {
+      return buildGameAction(action);
+    }),
+    winners: state.winners
+  };
+};
+
+var getGuessId = function getGuessId(state) {
+  return state.guess;
+};
+
+var getTargetPosition = function getTargetPosition(state) {
+  return state.target;
+};
+
+var getActions = Object(reselect__WEBPACK_IMPORTED_MODULE_8__["createSelector"])([getGameState], function (state) {
   return state.validActions;
-};
-
-var cardId = function cardId(state) {
-  return state.chosenCard ? state.chosenCard.value : null;
-};
-
-var chosenCard = function chosenCard(state) {
-  return state.chosenCard;
-};
-
-var guessId = function guessId(state) {
-  return state.guess ? state.guess.value : null;
-};
-
-var players = function players(state) {
+});
+var getChosenCard = Object(reselect__WEBPACK_IMPORTED_MODULE_8__["createSelector"])([getGameState], function (state) {
+  return state.chosenCard !== null ? state.hand[state.chosenCard] : null;
+});
+var getHand = Object(reselect__WEBPACK_IMPORTED_MODULE_8__["createSelector"])([getGameState], function (state) {
+  return state.hand;
+});
+var players = Object(reselect__WEBPACK_IMPORTED_MODULE_8__["createSelector"])([getGameState], function (state) {
   return state.players;
-};
-
-var targetPosition = function targetPosition(state) {
-  return state.target ? state.target.position : null;
-};
-
-var getChosenGameAction = Object(reselect__WEBPACK_IMPORTED_MODULE_3__["createSelector"])([actions, cardId, guessId, targetPosition], function (actions, cardId, guessId, targetPos) {
+});
+var getChosenGameAction = Object(reselect__WEBPACK_IMPORTED_MODULE_8__["createSelector"])([getActions, getChosenCard, getGuessId, getTargetPosition], function (actions, card, guessId, targetPos) {
   return actions.find(function (action) {
-    return action.card.value === cardId && (action.guess ? action.guess.value : action.guess) === guessId && action.target === targetPos;
+    var _action$guess$value, _action$guess;
+
+    var actionGuess = (_action$guess$value = (_action$guess = action.guess) === null || _action$guess === void 0 ? void 0 : _action$guess.value) !== null && _action$guess$value !== void 0 ? _action$guess$value : null;
+    return action.card.value === (card === null || card === void 0 ? void 0 : card.value) && actionGuess === guessId && action.target === targetPos;
   });
 });
-var getHumanPlayer = Object(reselect__WEBPACK_IMPORTED_MODULE_3__["createSelector"])([players], function (players) {
+var getHumanPlayer = Object(reselect__WEBPACK_IMPORTED_MODULE_8__["createSelector"])([players], function (players) {
   return players[0];
 });
-var validTargetsExist = Object(reselect__WEBPACK_IMPORTED_MODULE_3__["createSelector"])([chosenCard, players], function (chosenCard, players) {
+var getTargetPlayer = Object(reselect__WEBPACK_IMPORTED_MODULE_8__["createSelector"])([getGameState], function (state) {
+  return state.target ? state.players[state.target] : null;
+});
+var validTargetsExist = Object(reselect__WEBPACK_IMPORTED_MODULE_8__["createSelector"])([getChosenCard, players], function (chosenCard, players) {
   if (!(chosenCard === null || chosenCard === void 0 ? void 0 : chosenCard.hasTarget())) {
     return false;
   }
 
   var validPlayers = players;
 
-  if (chosenCard.value !== _types__WEBPACK_IMPORTED_MODULE_4__["Card"].CardValue.PRINCE) {
+  if (chosenCard.value !== _types__WEBPACK_IMPORTED_MODULE_9__["Card"].CardValue.PRINCE) {
     validPlayers = players.filter(function (p) {
       return p.position !== 0;
     });
