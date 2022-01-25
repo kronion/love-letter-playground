@@ -1,30 +1,34 @@
-import classNames from 'classnames'
-import React from 'react'
-import { connect, ConnectedProps } from 'react-redux'
+import classNames from 'classnames';
+import React from 'react';
+import { connect, ConnectedProps } from 'react-redux';
 
-import Actions from '../../redux/actions'
-import { State } from '../../redux/reducer'
-import { getChosenCard, getGameState, getTargetPlayer } from '../../redux/selectors'
-import Card from '../Card'
+import { RootState } from 'app/store';
+import Card from 'features/game/components/Card';
+import { getChosenCard, getGameState, getTargetPlayer } from 'features/game/selectors';
+import { actions } from 'features/game/slice';
 
-import styles from './index.module.scss'
+import styles from './index.module.scss';
 
-const mapProps = (state: State) => ({
-  chosenCard: getChosenCard(state),
-  currentPlayer: state.currentPlayer,
-  gameOver: state.gameOver,
-  players: state.players,
-  priestInfo: getGameState(state).priestInfo,
-  target: getTargetPlayer(state),
-})
+const mapProps = (state: RootState) => {
+  const gameState = getGameState(state);
+
+  return ({
+    chosenCard: getChosenCard(state),
+    currentPlayer: gameState.currentPlayer,
+    gameOver: gameState.gameOver,
+    players: gameState.players,
+    priestInfo: gameState.priestInfo,
+    target: getTargetPlayer(state),
+  });
+};
 
 const mapDispatch = {
-  chooseTarget: Actions.chooseTarget,
-}
+  chooseTarget: actions.chooseTarget,
+};
 
-const connector = connect(mapProps, mapDispatch)
+const connector = connect(mapProps, mapDispatch);
 
-type Props = ConnectedProps<typeof connector>
+type Props = ConnectedProps<typeof connector>;
 
 const Opponents: React.FC<Props> = (props) => {
   return (
@@ -35,7 +39,7 @@ const Opponents: React.FC<Props> = (props) => {
             [`${styles.active}`]: p.active,
             [`${styles.current}`]: p.position === props.currentPlayer,
             [`${styles.out}`]: !p.active,
-          }]
+          }];
 
           return (
             <div key={p.position} className={classNames(classes)}>
@@ -74,11 +78,11 @@ const Opponents: React.FC<Props> = (props) => {
                 )
               }
             </div>
-          )
+          );
         }
       })}
     </div>
-  )
-}
+  );
+};
 
 export default connector(Opponents);

@@ -1,9 +1,9 @@
-import classnames from 'classnames'
-import React from 'react'
+import classnames from 'classnames';
+import React from 'react';
 
-import { Card as CardType } from '../../types'
+import { Card as CardType } from 'types';
 
-import styles from './index.module.scss'
+import styles from './index.module.scss';
 
 
 type Props = {
@@ -14,14 +14,14 @@ type Props = {
   onClick?: () => void
   selectable?: boolean
   selected?: boolean
-}
+};
 
 const Card: React.FC<Props> = (props) => {
   // Basic validation of some mutually exclusive states
-  const faceUp = props.faceUp && !props.empty
-  const disabled = props.disabled && faceUp
-  const selectable = props.selectable && faceUp
-  const selected = props.selected && faceUp
+  const faceUp = props.faceUp && !props.empty;
+  const disabled = props.disabled && faceUp;
+  const selectable = props.selectable && faceUp;
+  const selected = props.selected && faceUp;
 
   const classes = classnames([
     `${styles.Card}`,
@@ -30,7 +30,7 @@ const Card: React.FC<Props> = (props) => {
     {[`${styles.faceUp}`]: faceUp},
     {[`${styles.selectable}`]: selectable},
     {[`${styles.selected}`]: selected},
-  ])
+  ]);
 
   return (
     <div className={classes} onClick={props.onClick}>
@@ -45,8 +45,8 @@ const Card: React.FC<Props> = (props) => {
           : <div className={styles.backDesign}>?</div>
       )}
     </div>
-  )
-}
+  );
+};
 
 Card.defaultProps = {
   card: null,

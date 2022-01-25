@@ -1,4 +1,5 @@
-import Actions from './actions';
+import { actions } from './slice';
+import socketReceive from './dispatcher';
 
 export const createSocketMiddleware = (url: string) => {
   const middleware = storeApi => {
@@ -10,13 +11,13 @@ export const createSocketMiddleware = (url: string) => {
       console.log(socket);
 
       socket.onopen = () => {
-        storeApi.dispatch(Actions.socketConnected());
+        storeApi.dispatch(actions.socketConnected());
         retryTimeout = 2;
       };
 
       socket.onmessage = event => {
         const data = JSON.parse(event.data);
-        Actions.socketReceive(data, storeApi.dispatch);
+        socketReceive(data, storeApi.dispatch);
       };
 
       // Try to reconnect automatically
@@ -28,7 +29,7 @@ export const createSocketMiddleware = (url: string) => {
     createSocket();
 
     return next => action => {
-      if (Actions.socketSend.match(action)) {
+      if (actions.send.match(action)) {
         if (socket === null) {
           throw new Error("Cannot send message, socket closed");
         }

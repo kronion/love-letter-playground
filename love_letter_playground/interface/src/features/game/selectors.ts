@@ -1,8 +1,13 @@
 import { createSelector } from 'reselect'
 
-import { Card, GameAction, GameState, Play, Player, PriestInfo, RawApiGameAction, RawApiPlay, RawApiPlayer, RawApiPriestInfo } from '../types'
-import { State } from './reducer'
+import { RootState } from 'app/store';
+import { State as GameState } from 'features/game/slice';
+import { Card, GameAction, Play, Player, PriestInfo, RawApiGameAction, RawApiPlay, RawApiPlayer, RawApiPriestInfo } from 'types';
 
+
+export const getGameReducerState = (state: RootState): GameState => {
+  return state.game;
+}
 
 const buildGameAction = (data: RawApiGameAction): GameAction => {
   return {
@@ -41,7 +46,7 @@ const buildPriestInfo = (data: RawApiPriestInfo): PriestInfo => {
   return newData
 }
 
-export const getGameState = (state: State): GameState => {
+export const getGameState = createSelector([ getGameReducerState ], (state) => {
   return {
     cardsRemaining: state.cardsRemaining,
     chosenCard: state.chosenCard,
@@ -55,12 +60,13 @@ export const getGameState = (state: State): GameState => {
     priestInfo: buildPriestInfo(state.priestInfo),
     target: state.target,
     validActions: state.validActions.map(action => buildGameAction(action)),
+    watching: state.watching,
     winners: state.winners
   }
-}
+});
 
-const getGuessId = (state: State) => state.guess;
-const getTargetPosition = (state: State) => state.target;
+const getGuessId = createSelector([ getGameReducerState ], (state) => state.guess);
+const getTargetPosition = createSelector([ getGameReducerState ], (state) => state.target);
 
 const getActions = createSelector([ getGameState ], (state) => state.validActions);
 export const getChosenCard = createSelector([ getGameState ], (state) => {

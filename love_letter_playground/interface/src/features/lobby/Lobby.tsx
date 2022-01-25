@@ -1,13 +1,13 @@
 import React from 'react'
 import { connect, ConnectedProps } from 'react-redux'
 
-import Action from '../redux/actions'
+import { actions } from 'features/game/slice';
 
-const connector = connect(null, { create: Action.sendCreate });
+const connector = connect(null, { create: actions.sendCreate });
 
 type Props = ConnectedProps<typeof connector>
 
-class Menu extends React.Component<Props> {
+class Lobby extends React.Component<Props> {
   render() {
     return (
       <div>
@@ -19,4 +19,4 @@ class Menu extends React.Component<Props> {
   }
 }
 
-export default connector(Menu);
+export default connector(Lobby);

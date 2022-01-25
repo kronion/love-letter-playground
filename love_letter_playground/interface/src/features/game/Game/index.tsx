@@ -1,16 +1,16 @@
-import React from 'react'
-import { connect, ConnectedProps } from 'react-redux'
+import React from 'react';
+import { connect, ConnectedProps } from 'react-redux';
 
-import Actions from '../../redux/actions'
-import Board from '../Board'
-import GameStatus from '../GameStatus'
-import Opponents from '../Opponents'
-import PlayerHand from '../PlayerHand'
+import { actions } from '../slice';
+import Board from '../components/Board';
+import GameStatus from '../components/GameStatus';
+import Opponents from '../components/Opponents';
+import PlayerHand from '../components/PlayerHand';
 
 import styles from './index.module.scss'
 
 const mapDispatch = {
-  reset: Actions.sendReset,
+  reset: actions.sendReset,
 }
 
 const connector = connect(null, mapDispatch)

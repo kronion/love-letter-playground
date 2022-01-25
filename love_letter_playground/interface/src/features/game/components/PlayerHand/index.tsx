@@ -1,40 +1,44 @@
-import classNames from 'classnames'
-import React from 'react'
-import { connect, ConnectedProps } from 'react-redux'
+import classNames from 'classnames';
+import React from 'react';
+import { connect, ConnectedProps } from 'react-redux';
 
-import Actions from '../../redux/actions'
-import { State } from '../../redux/reducer'
-import { getChosenCard, getHand, getHumanPlayer, getTargetPlayer } from '../../redux/selectors'
-import { Card as CardType } from '../../types'
-import Card from '../Card'
+import { RootState } from 'app/store';
+import Card from 'features/game/components/Card';
+import { getChosenCard, getGameState, getHand, getHumanPlayer, getTargetPlayer } from 'features/game/selectors';
+import { actions } from 'features/game/slice';
+import { Card as CardType } from 'types';
 
-import styles from './index.module.scss'
-import SelectionWizard from './SelectionWizard'
+import styles from './index.module.scss';
+import SelectionWizard from './SelectionWizard';
 
-const mapProps = (state: State) => ({
-  chosenCard: getChosenCard(state),
-  chosenCardPos: state.chosenCard,
-  disabled: state.currentPlayer !== 0,
-  hand: getHand(state),
-  player: getHumanPlayer(state),
-  target: getTargetPlayer(state),
-})
+const mapProps = (state: RootState) => {
+  const gameState = getGameState(state);
+
+  return {
+    chosenCard: getChosenCard(state),
+    chosenCardPos: gameState.chosenCard,
+    disabled: gameState.currentPlayer !== 0,
+    hand: getHand(state),
+    player: getHumanPlayer(state),
+    target: getTargetPlayer(state),
+  };
+};
 
 const mapDispatch = {
-  chooseCard: Actions.chooseCard,
-  chooseTarget: Actions.chooseTarget,
-}
+  chooseCard: actions.chooseCard,
+  chooseTarget: actions.chooseTarget,
+};
 
-const connector = connect(mapProps, mapDispatch)
+const connector = connect(mapProps, mapDispatch);
 
-type Props = ConnectedProps<typeof connector>
+type Props = ConnectedProps<typeof connector>;
 
 const PlayerHand: React.FC<Props> = (props) => {
   const classes = [`${styles.PlayerHand}`, {
     [`${styles.active}`]: props.player.active,
     [`${styles.current}`]: !props.disabled,
     [`${styles.out}`]: !props.player.active,
-  }]
+  }];
 
   return (
     <div className={classNames(classes)}>
@@ -52,7 +56,7 @@ const PlayerHand: React.FC<Props> = (props) => {
                 onClick,
                 selectable: true,
                 selected
-              }
+              };
               return (
                 <div key={pos} className={styles.cardContainer}>
                   {selected && <SelectionWizard/>}
@@ -79,7 +83,7 @@ const PlayerHand: React.FC<Props> = (props) => {
         <div>Wins: {props.player.wins}</div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default connector(PlayerHand);

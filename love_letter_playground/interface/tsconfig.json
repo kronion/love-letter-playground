@@ -1,6 +1,7 @@
 {
   "include": ["src/**/*"],
   "compilerOptions": {
+    "baseUrl": "src",
     "esModuleInterop": true,
     "jsx": "react",
     "strict": true

@@ -1,13 +1,13 @@
-import React from 'react'
+import React from 'react';
 
-import { Play as PlayType } from '../../types'
-import Card from '../Card'
+import Card from 'features/game/components/Card';
+import { Play as PlayType } from 'types';
 
-import styles from './index.module.scss'
+import styles from './index.module.scss';
 
 type Props = {
   play: PlayType
-}
+};
 
 const Play: React.FC<Props> = (props) => {
   return (
@@ -36,7 +36,7 @@ const Play: React.FC<Props> = (props) => {
         </div>
       }
     </div>
-  )
-}
+  );
+};
 
 export default Play;

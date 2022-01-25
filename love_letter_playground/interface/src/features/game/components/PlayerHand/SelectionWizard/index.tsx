@@ -1,31 +1,35 @@
-import React from 'react'
-import { connect, ConnectedProps } from 'react-redux'
+import React from 'react';
+import { connect, ConnectedProps } from 'react-redux';
 
-import Actions from '../../../redux/actions'
-import { State } from '../../../redux/reducer'
-import { getChosenCard, getChosenGameAction, validTargetsExist } from '../../../redux/selectors'
-import { Card } from '../../../types'
+import { RootState } from 'app/store';
+import { getChosenCard, getChosenGameAction, getGameState, validTargetsExist } from 'features/game/selectors';
+import { actions } from 'features/game/slice';
+import { Card } from 'types';
 
-import styles from './index.module.scss'
+import styles from './index.module.scss';
 
-const mapProps = (state: State) => ({
-  action: getChosenGameAction(state),
-  chosenCard: getChosenCard(state),
-  guess: state.guess,
-  target: state.target,
-  validTargetsExist: validTargetsExist(state)
-})
+const mapProps = (state: RootState) => {
+  const gameState = getGameState(state);
+
+  return {
+    action: getChosenGameAction(state),
+    chosenCard: getChosenCard(state),
+    guess: gameState.guess,
+    target: gameState.target,
+    validTargetsExist: validTargetsExist(state)
+  };
+};
 
 const mapDispatch = {
-  chooseCard: Actions.chooseCard,
-  chooseGuess: Actions.chooseGuess,
-  chooseTarget: Actions.chooseTarget,
-  play: Actions.play,
-}
+  chooseCard: actions.chooseCard,
+  chooseGuess: actions.chooseGuess,
+  chooseTarget: actions.chooseTarget,
+  play: actions.play,
+};
 
-const connector = connect(mapProps, mapDispatch)
+const connector = connect(mapProps, mapDispatch);
 
-type Props = ConnectedProps<typeof connector>
+type Props = ConnectedProps<typeof connector>;
 
 const SelectionWizard: React.FC<Props> = (props) => {
   console.log(props.action);
@@ -34,20 +38,20 @@ const SelectionWizard: React.FC<Props> = (props) => {
       props.chooseCard(null)
       props.chooseGuess(null)
       props.chooseTarget(null)
-    }
+    };
 
-  let playButtonProps = {}
+  let playButtonProps = {};
   if (props.action !== undefined) {
-    let action = props.action
-    playButtonProps = { onClick: () => props.play(action) }
+    let action = props.action;
+    playButtonProps = { onClick: () => props.play(action) };
   } else {
-    playButtonProps = { disabled: true }
+    playButtonProps = { disabled: true };
   }
 
   const handleGuess = (iStr: string) => {
-    const i = Number.parseInt(iStr)
-    props.chooseGuess(i)
-  }
+    const i = Number.parseInt(iStr);
+    props.chooseGuess(i);
+  };
 
   const guessDropdown = (
     <div className={styles.guessDropdown}>
@@ -62,14 +66,14 @@ const SelectionWizard: React.FC<Props> = (props) => {
         <option value={Card.CardValue.PRINCESS}>{Card.CardValue[Card.CardValue.PRINCESS]}</option>
       </select>
     </div>
-  )
+  );
 
   const playButtons = (
     <div className={styles.buttons}>
       <button {...playButtonProps}>Play</button>
       <button onClick={clickCancel}>Cancel</button>
     </div>
-  )
+  );
 
   return (
     <div className={styles.SelectionWizard}>
@@ -100,7 +104,7 @@ const SelectionWizard: React.FC<Props> = (props) => {
         : playButtons
       }
     </div>
-  )
-}
+  );
+};
 
 export default connector(SelectionWizard);
