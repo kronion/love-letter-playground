@@ -8,6 +8,7 @@ from gym_love_letter.envs.base import InvalidPlayError, LoveLetterMultiAgentEnv
 from love_letter_playground.agents import HumanAgent, RandomAgent
 from love_letter_playground.interface.models import Game, Lobby, User
 from love_letter_playground.interface.schema import GameOverSchema, ObservationSchema
+from love_letter_playground.interface.serializers import LobbySerializer
 
 
 class Operation(str, Enum):
@@ -218,25 +219,26 @@ def make_api():
         return jsonify(ActionSchema(many=True).dump(env.valid_actions))
 
     @api.websocket("/ws")
-    async def manage_socket(ws: WebSocket, user_id: Optional[str] = Cookie(None)):
-        if user_id is None:
+    async def manage_socket(ws: WebSocket):
+        if "user_id" not in ws.session:
             await ws.close(code=status.WS_1008_POLICY_VIOLATION)
             return
+
+        user_id = ws.session["user_id"]
 
         if user_id not in user_cache:
             user_cache[user_id] = User(user_id)
         user = user_cache[user_id]
-        user.add_connection(ws)
+        await user.add_connection(ws)
 
         if user.game is not None:
             game_state = ObservationSchema().dump(user.game.env.observe())
             message = {"operation": "status", "status": 200, "data": game_state}
         else:
             lobby.users.add(user)
-            message = {"operation": "lobby", "status": 200, "data": lobby.games}
+            message = {"operation": "lobby", "status": 200, "data": LobbySerializer.from_orm(lobby).dict()}
 
         try:
-            await ws.accept()
             await ws.send_json(message)
             while True:
                 await handle_websocket_message(ws, user, game_cache)

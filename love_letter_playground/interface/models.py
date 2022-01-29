@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import uuid
 from typing import Optional
 
+import nanoid
 from fastapi import WebSocket
 
 
@@ -31,8 +31,8 @@ class User:
         self.ws_manager = ConnectionManager()
         self.game: Optional[Game] = None
 
-    def add_connection(self, ws: WebSocket) -> None:
-        self.ws_manager.connect(ws)
+    async def add_connection(self, ws: WebSocket) -> None:
+        await self.ws_manager.connect(ws)
 
     def remove_connection(self, ws: WebSocket) -> None:
         self.ws_manager.disconnect(ws)
@@ -49,7 +49,7 @@ class User:
 
 class Game:
     def __init__(self, env):
-        self.id = str(uuid.uuid4())
+        self.id = nanoid.generate(alphabet="1234567890", size=10)
         self.env = env
         self.players = {}
 

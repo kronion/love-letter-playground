@@ -6,3 +6,6 @@
 
 __pycache__
 node_modules
+
+# Assume unsafe to check in by default
+.envrc

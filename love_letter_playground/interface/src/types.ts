@@ -114,3 +114,17 @@ export interface RawApiGameState {
   validActions: RawApiGameAction[]
   winners: PlayerPosition[]
 }
+
+interface User {
+  id: string
+}
+
+interface Game {
+  id: string
+  players: User[]
+}
+
+export interface Lobby {
+  games: Game[]
+  users: User[]
+}

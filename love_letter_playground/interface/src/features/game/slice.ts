@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 // import { current } from 'immer'
 
 import { actions as socketActions } from 'app/socket/slice';
-import { CardId, CardPosition, GameAction, GameState, PlayerPosition, Player, RawApiGameState } from 'types';
+import { CardId, CardPosition, GameAction, PlayerPosition, Player, RawApiGameState } from 'types';
 
 
 // TODO add storage of player wins across games
@@ -60,7 +60,7 @@ const gameSlice = createSlice({
     socketConnected: (state) => {
       state.connecting = false;
     },
-    update: (state, action: PayloadAction<GameState>) => {
+    update: (state, action: PayloadAction<RawApiGameState>) => {
       state = {
         ...state,
         ...action.payload,

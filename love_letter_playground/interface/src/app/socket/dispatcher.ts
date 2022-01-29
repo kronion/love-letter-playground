@@ -2,6 +2,7 @@
 // in order to avoid a cyclical dependency.
 
 import { actions as gameActions } from 'features/game/slice';
+import { actions as lobbyActions } from 'features/lobby/slice';
 
 export default (data, dispatch) => {
   console.log(data);
@@ -12,7 +13,7 @@ export default (data, dispatch) => {
     }
   }
   else if (data.operation === "lobby") {
-    console.log(data);
+    dispatch(lobbyActions.update(data.data));
   }
   else if (data.operation === "reset") {
     let gameData = data.data;

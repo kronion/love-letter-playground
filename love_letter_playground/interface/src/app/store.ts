@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import { createSocketMiddleware } from 'app/socket/middleware';
 import { reducer as socketReducer } from 'app/socket/slice';
-import lobbyReducer from 'features/lobby/slice';
+import { reducer as lobbyReducer } from 'features/lobby/slice';
 import { reducer as gameReducer} from 'features/game/slice';
 
 
